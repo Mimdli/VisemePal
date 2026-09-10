@@ -1,0 +1,58 @@
+{
+  "phonemes": [
+    {
+      "ipa": "iː",
+      "examples": ["sheep", "see", "eat"],
+      "common_error": "ɪ",
+      "note": "长元音，舌位更前更高，口型略展"
+    },
+    {
+      "ipa": "ɪ",
+      "examples": ["ship", "sit", "it"],
+      "common_error": "iː",
+      "note": "短元音，舌位略低，时长更短"
+    },
+    {
+      "ipa": "æ",
+      "examples": ["cat", "apple", "hat"],
+      "common_error": "e",
+      "note": "开口更大，舌位靠前靠下"
+    },
+    {
+      "ipa": "θ",
+      "examples": ["think", "three", "thank"],
+      "common_error": "s",
+      "note": "舌尖轻触上齿，送气摩擦"
+    },
+    {
+      "ipa": "ð",
+      "examples": ["this", "that", "the"],
+      "common_error": "z",
+      "note": "与 /θ/ 同部位，声带振动"
+    },
+    {
+      "ipa": "v",
+      "examples": ["very", "five", "have"],
+      "common_error": "w",
+      "note": "上齿轻咬下唇，不要圆唇"
+    },
+    {
+      "ipa": "w",
+      "examples": ["we", "water", "what"],
+      "common_error": "v",
+      "note": "双唇收圆前突，齿不碰唇"
+    },
+    {
+      "ipa": "l",
+      "examples": ["light", "like", "hello"],
+      "common_error": "r",
+      "note": "舌尖抵上齿龈"
+    },
+    {
+      "ipa": "r",
+      "examples": ["red", "right", "run"],
+      "common_error": "l",
+      "note": "舌尖上卷，不碰齿龈"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "iː": {
+    "mouth_shape": "展唇扁长",
+    "tongue_position": "舌前部抬高贴近硬腭",
+    "animation_key": "viseme_iy",
+    "description": "发长音 /iː/ 时嘴唇向两边拉开，舌头前部抬高。",
+    "child_tip": "像微笑一样把嘴拉开，声音拉长一点，像 sheep 里的 ee。"
+  },
+  "ɪ": {
+    "mouth_shape": "微展、开口更松",
+    "tongue_position": "舌前部略低",
+    "animation_key": "viseme_ih",
+    "description": "短元音 /ɪ/ 口型比 /iː/ 更松，时长更短。",
+    "child_tip": "嘴不要拉太开，声音短短的，像 ship 里的 i。"
+  },
+  "æ": {
+    "mouth_shape": "扁唇大开口",
+    "tongue_position": "舌前部放低",
+    "animation_key": "viseme_ae",
+    "description": "开口明显大于 /e/，下颌下降。",
+    "child_tip": "嘴巴张大一点，像医生说「啊」，但是更扁，像 cat。"
+  },
+  "θ": {
+    "mouth_shape": "微开，舌尖可见",
+    "tongue_position": "舌尖轻触上齿边缘",
+    "animation_key": "viseme_th",
+    "description": "清辅音 /θ/，舌尖与上齿形成缝隙送气。",
+    "child_tip": "把舌头轻轻伸到牙齿中间，吹一口气，不要咬成 s。"
+  },
+  "ð": {
+    "mouth_shape": "微开，舌尖可见",
+    "tongue_position": "舌尖轻触上齿边缘，声带振动",
+    "animation_key": "viseme_dh",
+    "description": "浊辅音 /ð/，部位同 /θ/，声带振动。",
+    "child_tip": "舌头位置和 think 一样，但是要发出嗡嗡的声音，像 this。"
+  },
+  "v": {
+    "mouth_shape": "上齿轻咬下唇",
+    "tongue_position": "舌身自然放平",
+    "animation_key": "viseme_v",
+    "description": "上齿接触下唇形成摩擦。",
+    "child_tip": "用上面的牙齿轻轻碰到下嘴唇，再出声，不要圆嘴唇。"
+  },
+  "w": {
+    "mouth_shape": "双唇收圆前突",
+    "tongue_position": "舌后部略抬",
+    "animation_key": "viseme_w",
+    "description": "圆唇滑音，齿不接触下唇。",
+    "child_tip": "把嘴唇收成小小的圆，往前突一下，像说「乌」。"
+  },
+  "l": {
+    "mouth_shape": "微开",
+    "tongue_position": "舌尖抵上齿龈",
+    "animation_key": "viseme_l",
+    "description": "舌尖接触上齿龈后离开。",
+    "child_tip": "舌尖点一下上牙后面的小鼓包，再松开。"
+  },
+  "r": {
+    "mouth_shape": "微圆",
+    "tongue_position": "舌尖上卷，不接触齿龈",
+    "animation_key": "viseme_r",
+    "description": "美式 /r/ 舌尖卷起但不碰牙齿。",
+    "child_tip": "舌头向后卷一点，不要碰到牙齿，像小钩子。"
+  }
+}
