@@ -9,8 +9,9 @@ from app.config import settings
 from app.db import get_db
 from app.models import Lesson, PracticeRecord, User
 from app.schemas import EvaluateResult
+from app.services.audio import AudioError, prepare_for_ise
 from app.services.diagnose import diagnose
-from app.services.ise import evaluate_audio
+from app.services.ise import IseError, evaluate_audio, has_ise_credentials
 
 router = APIRouter(prefix="/evaluate", tags=["evaluate"])
 
@@ -30,10 +31,22 @@ async def evaluate_pronunciation(
     filename = f"{uuid4().hex}{suffix}"
     dest = settings.upload_dir / filename
     dest.write_bytes(await audio.read())
+    if dest.stat().st_size == 0:
+        raise HTTPException(status_code=400, detail="录音是空的，请重新跟读")
 
-    ise_result = evaluate_audio(dest, lesson)
+    try:
+        pcm_path = prepare_for_ise(dest, settings.upload_dir / "pcm")
+    except AudioError as exc:
+        if has_ise_credentials():
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        pcm_path = dest
+
+    try:
+        ise_result = await evaluate_audio(pcm_path, lesson)
+    except IseError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     result = diagnose(lesson, ise_result)
-
     record = PracticeRecord(
         user_id=user.id,
         lesson_id=lesson.id,

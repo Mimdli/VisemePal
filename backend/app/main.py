@@ -2,13 +2,18 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api import api_router
-from app.config import settings
+from app.config import BACKEND_DIR, settings
 from app.db import Base, SessionLocal, engine
 from app.models import Lesson, PracticeRecord, User  # noqa: F401
 from app.schemas import HealthOut
 from app.seed import seed_if_empty
+
+STATIC_DIR = BACKEND_DIR / "static"
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+(STATIC_DIR / "audio").mkdir(parents=True, exist_ok=True)
 
 
 @asynccontextmanager
@@ -30,6 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(api_router)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/health", response_model=HealthOut, tags=["system"])

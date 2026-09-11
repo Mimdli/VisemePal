@@ -40,6 +40,7 @@ class EvaluateResult(BaseModel):
     error_phonemes: list[PhonemeError] = Field(default_factory=list)
     tips: list[str] = Field(default_factory=list)
     record_id: int | None = None
+    provider: str = "stub"
 
 
 class VisemeOut(BaseModel):
@@ -73,3 +74,23 @@ class RecommendOut(BaseModel):
     plan_title: str
     summary: str
     items: list[RecommendItem] = Field(default_factory=list)
+    source: str = "rules"
+
+
+class PhonemeOut(BaseModel):
+    ipa: str
+    examples: list[str] = Field(default_factory=list)
+    common_error: str | None = None
+    note: str = ""
+    viseme: VisemeOut | None = None
+
+
+class ErrorStat(BaseModel):
+    phoneme: str
+    count: int
+
+
+class RecordStatsOut(BaseModel):
+    practice_count: int
+    average_score: float = 0
+    top_errors: list[ErrorStat] = Field(default_factory=list)

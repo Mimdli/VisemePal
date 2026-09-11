@@ -19,6 +19,24 @@
       "note": "开口更大，舌位靠前靠下"
     },
     {
+      "ipa": "e",
+      "examples": ["bed", "pen", "red"],
+      "common_error": "æ",
+      "note": "开口小于 /æ/，舌位略高"
+    },
+    {
+      "ipa": "ʌ",
+      "examples": ["cup", "sun", "but"],
+      "common_error": "ɑː",
+      "note": "短元音，口型自然放松"
+    },
+    {
+      "ipa": "uː",
+      "examples": ["food", "blue", "two"],
+      "common_error": "ʊ",
+      "note": "双唇收圆，声音拉长"
+    },
+    {
       "ipa": "θ",
       "examples": ["think", "three", "thank"],
       "common_error": "s",
@@ -31,6 +49,18 @@
       "note": "与 /θ/ 同部位，声带振动"
     },
     {
+      "ipa": "ʃ",
+      "examples": ["sheep", "shoe", "fish"],
+      "common_error": "s",
+      "note": "双唇略突，气流从舌面通过"
+    },
+    {
+      "ipa": "s",
+      "examples": ["see", "sun", "bus"],
+      "common_error": "ʃ",
+      "note": "舌尖靠近齿龈，不要圆唇"
+    },
+    {
       "ipa": "v",
       "examples": ["very", "five", "have"],
       "common_error": "w",
@@ -41,6 +71,12 @@
       "examples": ["we", "water", "what"],
       "common_error": "v",
       "note": "双唇收圆前突，齿不碰唇"
+    },
+    {
+      "ipa": "f",
+      "examples": ["five", "fish", "off"],
+      "common_error": "v",
+      "note": "上齿轻触下唇，送气不振动"
     },
     {
       "ipa": "l",

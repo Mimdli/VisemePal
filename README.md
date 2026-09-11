@@ -70,7 +70,7 @@ Android 是面向儿童的主入口；Python 后端承接评测、诊断、资�
 | SQLite（开发）/ PostgreSQL（部署） | 持久化学习数据 |
 | pydub、soundfile | 录音转码、切片、评测前预处理 |
 | 讯飞 ISE | 发音评分与音素级结果 |
-| OpenAI 兼容 API（可换国内模型） | 个性化训练内容与纠音建议 |
+| DeepSeek V4.1 Flash（OpenAI 兼容） | 个性化训练内容与纠音建议 |
 | pytest | 接口与诊断逻辑测试 |
 
 讯飞评测与大模型密钥只放在后端环境变量中，不写入仓库或 App。
@@ -169,7 +169,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | --- | --- |
 | `DATABASE_URL` | 数据库连接串 |
 | `ISE_APP_ID` / `ISE_API_KEY` / `ISE_API_SECRET` | 讯飞智能评测 |
-| `LLM_API_KEY` / `LLM_BASE_URL` / `LLM_MODEL` | 个性化推荐模型 |
+| `LLM_API_KEY` / `LLM_BASE_URL` / `LLM_MODEL` | 个性化推荐。默认 DeepSeek V4.1 Flash：`https://api.deepseek.com` + `deepseek-flash` |
 
 ---
 

@@ -22,8 +22,12 @@ class Settings(BaseSettings):
     ise_api_secret: str = ""
 
     llm_api_key: str = ""
-    llm_base_url: str = "https://api.openai.com/v1"
-    llm_model: str = "gpt-4o-mini"
+    llm_base_url: str = "https://api.deepseek.com"
+    llm_model: str = "deepseek-flash"
+
+    ise_host: str = "ise-api.xfyun.cn"
+    ise_path: str = "/v2/open-ise"
+    error_score_threshold: float = 70.0
 
     def is_sqlite(self) -> bool:
         return self.database_url.startswith("sqlite")

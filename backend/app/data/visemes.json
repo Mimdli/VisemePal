@@ -20,6 +20,27 @@
     "description": "开口明显大于 /e/，下颌下降。",
     "child_tip": "嘴巴张大一点，像医生说「啊」，但是更扁，像 cat。"
   },
+  "e": {
+    "mouth_shape": "扁唇中开口",
+    "tongue_position": "舌前部半高",
+    "animation_key": "viseme_eh",
+    "description": "开口比 /æ/ 小，比 /ɪ/ 大。",
+    "child_tip": "嘴巴开一点点，不要张太大，像 red。"
+  },
+  "ʌ": {
+    "mouth_shape": "自然微开",
+    "tongue_position": "舌中央放松",
+    "animation_key": "viseme_ah",
+    "description": "口型放松，不要圆唇。",
+    "child_tip": "嘴巴放松，轻轻说一声，像 cup。"
+  },
+  "uː": {
+    "mouth_shape": "双唇收圆前突",
+    "tongue_position": "舌后部抬高",
+    "animation_key": "viseme_uw",
+    "description": "圆唇长音，声音拉长。",
+    "child_tip": "把嘴唇收成小小的圆，声音拉长，像 food。"
+  },
   "θ": {
     "mouth_shape": "微开，舌尖可见",
     "tongue_position": "舌尖轻触上齿边缘",
@@ -34,6 +55,20 @@
     "description": "浊辅音 /ð/，部位同 /θ/，声带振动。",
     "child_tip": "舌头位置和 think 一样，但是要发出嗡嗡的声音，像 this。"
   },
+  "ʃ": {
+    "mouth_shape": "双唇略圆前突",
+    "tongue_position": "舌前部接近硬腭",
+    "animation_key": "viseme_sh",
+    "description": "气流从舌面通过，带有 hush 音色。",
+    "child_tip": "嘴唇往前一点点，发出「嘘」的声音，像 sheep 开头。"
+  },
+  "s": {
+    "mouth_shape": "展唇微开",
+    "tongue_position": "舌尖靠近上齿龈",
+    "animation_key": "viseme_s",
+    "description": "清擦音，不要圆唇。",
+    "child_tip": "牙齿轻轻靠近，吹出细细的气声。"
+  },
   "v": {
     "mouth_shape": "上齿轻咬下唇",
     "tongue_position": "舌身自然放平",
@@ -47,6 +82,13 @@
     "animation_key": "viseme_w",
     "description": "圆唇滑音，齿不接触下唇。",
     "child_tip": "把嘴唇收成小小的圆，往前突一下，像说「乌」。"
+  },
+  "f": {
+    "mouth_shape": "上齿轻触下唇",
+    "tongue_position": "舌身自然放平",
+    "animation_key": "viseme_f",
+    "description": "清辅音，部位同 /v/，声带不振动。",
+    "child_tip": "牙齿轻轻碰下嘴唇，只吹气，像 fish。"
   },
   "l": {
     "mouth_shape": "微开",
