@@ -1,3 +1,5 @@
+import { DigitalHuman, PRESETS } from "./avatar.js";
+
 const state = {
   lessons: [],
   selected: null,
@@ -6,6 +8,15 @@ const state = {
   recorder: null,
 };
 
+const practiceHuman = new DigitalHuman({
+  front: document.getElementById("practice-front"),
+  side: document.getElementById("practice-side"),
+});
+const inspectHuman = new DigitalHuman({
+  front: document.getElementById("inspect-front"),
+  side: document.getElementById("inspect-side"),
+});
+practiceHuman.onFrame = (frame) => highlightTrack("practice-track", frame);
 const $ = (id) => document.getElementById(id);
 
 document.querySelectorAll(".tabs button").forEach((button) => {
@@ -83,16 +94,19 @@ function selectLesson(id) {
   });
   $("practice-title").textContent = lesson.title;
   $("practice-meta").textContent = `${lesson.text}  ${lesson.ipa}  ·  ${lesson.tip}`;
+  renderTrack("practice-track", lesson.viseme_track);
+  const focus = lesson.viseme_track?.frames?.find((frame) => frame.focus);
+  if (focus) practiceHuman.hold(focus.pose, `/${focus.phoneme}/`);
+  else practiceHuman.hold({});
   const audio = $("demo-audio");
   if (lesson.audio_url) {
     audio.src = lesson.audio_url;
     audio.hidden = false;
-    $("play-demo").disabled = false;
   } else {
     audio.removeAttribute("src");
     audio.hidden = true;
-    $("play-demo").disabled = true;
   }
+  $("play-demo").disabled = !lesson.viseme_track;
   $("rec-btn").disabled = false;
   $("eval-btn").disabled = true;
   $("rec-state").textContent = "可以开始跟读或上传音频。";
@@ -100,8 +114,10 @@ function selectLesson(id) {
 
 $("play-demo").addEventListener("click", () => {
   const audio = $("demo-audio");
+  const track = state.selected?.viseme_track;
+  if (!track) return;
   audio.hidden = false;
-  audio.play();
+  practiceHuman.speak(track, audio.src ? audio : null);
 });
 
 $("file-input").addEventListener("change", (event) => {
@@ -169,7 +185,6 @@ function renderResult(result) {
   $("result").querySelectorAll(".error-btn").forEach((button) => {
     button.addEventListener("click", () => {
       showTab("viseme");
-      document.querySelector(`.tabs button[data-tab="viseme"]`).classList.add("active");
       showViseme(button.dataset.phoneme);
     });
   });
@@ -203,50 +218,72 @@ async function showViseme(phoneme) {
   document.querySelectorAll(".chip").forEach((node) => {
     node.classList.toggle("active", node.dataset.ipa === viseme.phoneme);
   });
-  drawFace(viseme);
+  inspectHuman.hold(viseme.pose || {}, `/${viseme.phoneme}/`);
   $("viseme-text").classList.remove("empty");
   $("viseme-text").innerHTML = `
-    <p><b>/${viseme.phoneme}/</b></p>
+    <p><b>/${viseme.phoneme}/</b> · Oculus viseme <b>${viseme.oculus}</b></p>
     <p>口型：${viseme.mouth_shape}</p>
     <p>舌位：${viseme.tongue_position}</p>
     <p>${viseme.child_tip}</p>
-    <p class="hint">动画资源键：${viseme.animation_key}</p>
   `;
 }
 
-function drawFace(viseme) {
-  const blob = `${viseme.mouth_shape}${viseme.tongue_position}`;
-  const open = /大开口|张大|下降/.test(blob) ? 22 : /中开口|微开/.test(blob) ? 10 : 4;
-  const round = /圆/.test(blob);
-  const bite = /咬|下唇/.test(viseme.mouth_shape);
-  const mouth = $("mouth");
-  const tongue = $("tongue");
-  const left = round ? 92 : 78;
-  const right = round ? 128 : 142;
-  const mid = 110;
-  const top = 154;
-  const bottom = top + open;
-  if (bite) {
-    mouth.setAttribute("d", `M80 158 C110 162 110 162 140 158 M86 166 H134`);
-    mouth.setAttribute("fill", "none");
-  } else {
-    mouth.setAttribute(
-      "d",
-      `M${left} ${top} Q${mid} ${bottom} ${right} ${top} Q${mid} ${top - 4} ${left} ${top}Z`,
-    );
-    mouth.setAttribute("fill", "#6b1f1f");
+function renderTrack(id, track) {
+  const node = $(id);
+  if (!node) return;
+  if (!track) {
+    node.innerHTML = "";
+    return;
   }
-  if (/上卷/.test(viseme.tongue_position)) {
-    tongue.setAttribute("d", "M88 170 C110 150 110 150 132 170 C124 186 96 186 88 170Z");
-  } else if (/抬高|硬腭/.test(viseme.tongue_position)) {
-    tongue.setAttribute("d", "M90 160 C110 148 110 148 130 160 C124 176 96 176 90 160Z");
-  } else if (/放低/.test(viseme.tongue_position)) {
-    tongue.setAttribute("d", "M88 176 C110 198 110 198 132 176 C120 188 100 188 88 176Z");
-  } else if (/上齿|齿龈|伸/.test(viseme.tongue_position)) {
-    tongue.setAttribute("d", "M96 168 C110 156 110 156 124 168 C118 186 102 186 96 168Z");
-  } else {
-    tongue.setAttribute("d", "M90 168 C110 176 110 176 130 168 C128 182 92 182 90 168Z");
-  }
+  node.innerHTML = (track.frames || [])
+    .filter((frame) => frame.phoneme)
+    .map(
+      (frame) =>
+        `<span data-start="${frame.start_ms}" data-phoneme="${frame.phoneme}" class="${frame.focus ? "focus" : ""}">/${frame.phoneme}/</span>`,
+    )
+    .join("");
+  node.querySelectorAll("span").forEach((span) => {
+    span.addEventListener("click", () => {
+      const phone = span.dataset.phoneme;
+      const frame = (track.frames || []).find((item) => String(item.start_ms) === span.dataset.start);
+      if (frame) practiceHuman.hold(frame.pose, `/${phone}/`);
+      showTab("viseme");
+      showViseme(phone);
+    });
+  });
+}
+
+function highlightTrack(id, frame) {
+  const node = $(id);
+  if (!node) return;
+  node.querySelectorAll("span").forEach((span) => {
+    span.classList.toggle("on", Boolean(frame && span.dataset.start === String(frame.start_ms)));
+  });
+}
+
+const LOOK_KEY = "visemepal-look";
+
+function applyLook(name) {
+  if (!PRESETS[name]) return;
+  practiceHuman.setLook(name);
+  inspectHuman.setLook(name);
+  localStorage.setItem(LOOK_KEY, name);
+  document.querySelectorAll("[data-looks] button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.look === name);
+  });
+}
+
+function renderLooks() {
+  const html = Object.entries(PRESETS)
+    .map(([key, value]) => `<button type="button" data-look="${key}">${value.name}</button>`)
+    .join("");
+  document.querySelectorAll("[data-looks]").forEach((node) => {
+    node.innerHTML = html;
+    node.querySelectorAll("button").forEach((button) => {
+      button.addEventListener("click", () => applyLook(button.dataset.look));
+    });
+  });
+  applyLook(localStorage.getItem(LOOK_KEY) || "peach");
 }
 
 async function loadRecords() {
@@ -365,3 +402,4 @@ loadStatus();
 loadLessons();
 loadPhonemes();
 loadRecords();
+renderLooks();

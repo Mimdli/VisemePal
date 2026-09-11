@@ -103,5 +103,61 @@
     "animation_key": "viseme_r",
     "description": "美式 /r/ 舌尖卷起但不碰牙齿。",
     "child_tip": "舌头向后卷一点，不要碰到牙齿，像小钩子。"
+  },
+  "k": {
+    "mouth_shape": "微开",
+    "tongue_position": "舌后部抬起贴住软腭",
+    "animation_key": "viseme_k",
+    "description": "软腭塞音，气流在舌根被挡住再突然放开。",
+    "child_tip": "舌头后部抬高堵住后面，再一下子放开，像 cat 开头。"
+  },
+  "t": {
+    "mouth_shape": "微开",
+    "tongue_position": "舌尖抵上齿龈",
+    "animation_key": "viseme_t",
+    "description": "齿龈塞音，舌尖接触上牙后面再离开。",
+    "child_tip": "舌尖点一下上牙后面的小鼓包，再松开。"
+  },
+  "p": {
+    "mouth_shape": "双唇闭合后张开",
+    "tongue_position": "舌身自然放平",
+    "animation_key": "viseme_p",
+    "description": "双唇塞音，先把嘴唇闭上再送气打开。",
+    "child_tip": "先把嘴巴闭上，再轻轻爆破打开，像 sheep 结尾。"
+  },
+  "d": {
+    "mouth_shape": "微开",
+    "tongue_position": "舌尖抵上齿龈，声带振动",
+    "animation_key": "viseme_d",
+    "description": "与 /t/ 同部位，声带振动。",
+    "child_tip": "舌尖位置和 /t/ 一样，但要发出声音，像 red 结尾。"
+  },
+  "z": {
+    "mouth_shape": "展唇微开",
+    "tongue_position": "舌尖靠近上齿龈，声带振动",
+    "animation_key": "viseme_z",
+    "description": "与 /s/ 同部位，声带振动。",
+    "child_tip": "牙齿轻轻靠近，发出嗡嗡的声音。"
+  },
+  "ŋ": {
+    "mouth_shape": "微开",
+    "tongue_position": "舌后部贴住软腭，气流走鼻子",
+    "animation_key": "viseme_ng",
+    "description": "软腭鼻音，嘴巴可以微开，声音从鼻子出来。",
+    "child_tip": "舌头后部抬高，像 think 里的 ng。"
+  },
+  "ə": {
+    "mouth_shape": "自然微开",
+    "tongue_position": "舌中央放松",
+    "animation_key": "viseme_schwa",
+    "description": "中元音，口型最放松。",
+    "child_tip": "嘴巴放松，轻轻哼一声，像 the 里那个弱音。"
+  },
+  "i": {
+    "mouth_shape": "展唇扁长",
+    "tongue_position": "舌前部抬高贴近硬腭",
+    "animation_key": "viseme_iy",
+    "description": "与长音 /iː/ 部位相同，时长更短。",
+    "child_tip": "像微笑一样把嘴拉开。"
   }
 }

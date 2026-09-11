@@ -131,11 +131,12 @@ VisemePal/
 │   │   ├── services/
 │   │   │   ├── ise.py          # 讯飞评测
 │   │   │   ├── diagnose.py     # 音素级诊断
-│   │   │   ├── viseme.py       # 口型 / 舌位映射
-│   │   │   └── recommend.py    # 大模型推荐
-│   │   └── data/               # 音素资源、口型舌位映射
-│   ├── tests/
-│   └── static/                 # 示范音频、开发控制台页面
+    │   │   │   ├── viseme.py       # 口型 / 舌位映射
+    │   │   │   ├── lipsync.py      # IPA → Oculus viseme 时间轴
+    │   │   │   └── recommend.py    # 大模型推荐
+    │   │   └── data/               # 音素资源、口型舌位映射
+    │   ├── tests/
+    │   └── static/                 # 示范音频、开发控制台（含 Canvas 数字人）
 └── docs/                       # 需求、设计、测试与研究报告
 ```
 
@@ -159,7 +160,9 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 接口文档：`http://127.0.0.1:8000/docs`。  
-开发控制台：`http://127.0.0.1:8000`（浏览器里跟读、评测、看口型舌位、记录和推荐）。
+开发控制台：`http://127.0.0.1:8000`（浏览器里跟读、评测、看数字人口型与舌位、记录和推荐）。
+
+控制台里的数字人目前是 Canvas 卡通形象（小桃 / 可可 / 小雪可切换），口型集合对齐 TalkingHead / Meta 的 15 个 Oculus viseme；同一 viseme 里还会按 IPA 微调舌位。点「数字人示范」会按课程音素时间轴与示范音频对齐。进阶的 VRM / Ready Player Me 自定义形象后续再接。
 
 模拟器访问后端用 `http://10.0.2.2:8000`，真机用电脑局域网 IP。
 

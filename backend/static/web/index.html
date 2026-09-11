@@ -9,7 +9,7 @@
 <body>
   <header class="top">
     <div>
-      <p class="eyebrow">开发预览 · 不是儿童正式 App</p>
+      <p class="eyebrow">开发控制台 · 数字人口型对齐 Oculus / TalkingHead viseme</p>
       <h1>VisemePal</h1>
     </div>
     <div class="status" id="status">
@@ -19,7 +19,7 @@
 
   <nav class="tabs" id="tabs">
     <button type="button" class="active" data-tab="practice">跟读评测</button>
-    <button type="button" data-tab="viseme">口型舌位</button>
+    <button type="button" data-tab="viseme">数字人 / 舌位</button>
     <button type="button" data-tab="records">练习记录</button>
     <button type="button" data-tab="plan">训练计划</button>
   </nav>
@@ -29,15 +29,27 @@
       <div class="grid two">
         <article class="card">
           <h2>课程</h2>
-          <p class="hint">选一课后听示范，再录音或上传音频评测。</p>
+          <p class="hint">选一课，数字人会按音素时间轴做口型；侧面切开看舌位。可换一套外观。</p>
+          <div class="row look-row" data-looks></div>
           <div id="lessons" class="lesson-list">加载中…</div>
         </article>
         <article class="card">
           <h2 id="practice-title">先选一课</h2>
           <p id="practice-meta" class="hint"></p>
+          <div class="avatar-row">
+            <figure>
+              <canvas id="practice-front" width="320" height="380"></canvas>
+              <figcaption>正面口型</figcaption>
+            </figure>
+            <figure>
+              <canvas id="practice-side" width="280" height="380"></canvas>
+              <figcaption>侧面 + 舌位图</figcaption>
+            </figure>
+          </div>
+          <div id="practice-track" class="phone-track"></div>
           <audio id="demo-audio" controls hidden></audio>
           <div class="row">
-            <button type="button" id="play-demo" disabled>听示范</button>
+            <button type="button" id="play-demo" disabled>数字人示范</button>
             <button type="button" id="rec-btn" disabled>开始录音</button>
             <label class="file-btn">
               上传音频
@@ -55,19 +67,21 @@
       <div class="grid two">
         <article class="card">
           <h2>音素资源库</h2>
+          <p class="hint">点音素让数字人停在对应口型。三套外观可切换；后续可换成 VRM / Ready Player Me。</p>
+          <div class="row look-row" data-looks></div>
           <div id="phonemes" class="chip-list">加载中…</div>
         </article>
         <article class="card viseme-card">
-          <h2>示意图（开发占位）</h2>
-          <p class="hint">还不是数字人动画，用口型/舌位描述驱动一张示意图，方便核对资源。</p>
-          <div class="viseme-stage">
-            <svg id="face" viewBox="0 0 220 240" aria-label="口型舌位示意图">
-              <ellipse cx="110" cy="118" rx="78" ry="92" fill="#ffe8d2" stroke="#1e2a2a" stroke-width="3"/>
-              <circle cx="82" cy="96" r="7" fill="#1e2a2a"/>
-              <circle cx="138" cy="96" r="7" fill="#1e2a2a"/>
-              <path id="tongue" d="M90 168 C110 176 110 176 130 168 C128 182 92 182 90 168Z" fill="#e07a7a"/>
-              <path id="mouth" d="M78 156 C110 168 110 168 142 156" fill="none" stroke="#c45c4a" stroke-width="8" stroke-linecap="round"/>
-            </svg>
+          <h2>口型 + 舌位</h2>
+          <div class="avatar-row">
+            <figure>
+              <canvas id="inspect-front" width="320" height="380"></canvas>
+              <figcaption>正面口型</figcaption>
+            </figure>
+            <figure>
+              <canvas id="inspect-side" width="280" height="380"></canvas>
+              <figcaption>侧面 + 舌位图</figcaption>
+            </figure>
           </div>
           <div id="viseme-text" class="result empty">点左侧音素查看口型和舌位。</div>
         </article>
@@ -99,6 +113,6 @@
     </section>
   </main>
 
-  <script src="/static/web/app.js"></script>
+  <script type="module" src="/static/web/app.js"></script>
 </body>
 </html>

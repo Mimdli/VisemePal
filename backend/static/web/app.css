@@ -62,8 +62,20 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .score span { background: #fff; padding: 6px 10px; border-radius: 10px; }
 .error-btn { margin: 6px 6px 0 0; background: var(--coral); color: #fff; }
 
-.viseme-stage { display: flex; justify-content: center; background: #fff; border-radius: 16px; padding: 8px; }
-#face { width: min(260px, 100%); height: auto; }
+.avatar-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; background: #fff; border-radius: 16px; padding: 8px; }
+.avatar-row figure { margin: 0; text-align: center; }
+.avatar-row canvas {
+  width: min(280px, 100%);
+  height: auto;
+  display: block;
+  background: transparent;
+}
+.avatar-row figcaption { font-size: 12px; color: #5b6666; margin-top: 4px; }
+.look-row button.active { background: var(--teal); color: #fff; }
+.phone-track { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; margin: 10px 0; }
+.phone-track span { padding: 4px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: 13px; cursor: pointer; }
+.phone-track span.on { background: var(--teal); color: #fff; border-color: var(--teal); }
+.phone-track span.focus { box-shadow: 0 0 0 3px rgba(255, 138, 101, 0.35); }
 .record { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 
 @media (max-width: 800px) {

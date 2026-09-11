@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from app.schemas import PhonemeOut, VisemeOut
+from app.services.lipsync import oculus_for_phone, pose_for_phone
 from app.services.phones import to_ipa
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -25,13 +26,35 @@ def load_viseme_map() -> dict[str, dict]:
 def get_viseme(phoneme: str) -> VisemeOut | None:
     key = to_ipa(unquote(phoneme))
     item = load_viseme_map().get(key) or load_viseme_map().get(phoneme)
+    oculus = oculus_for_phone(key)
+    pose = pose_for_phone(key)
     if item is None:
-        return None
-    return VisemeOut(phoneme=key, **item)
+        if oculus == "sil" and key not in {"h", ""}:
+            return None
+        return VisemeOut(
+            phoneme=key or phoneme,
+            mouth_shape=oculus,
+            tongue_position="",
+            animation_key=f"viseme_{oculus}",
+            description="",
+            child_tip="",
+            oculus=oculus,
+            pose=pose,
+        )
+    return VisemeOut(
+        phoneme=key,
+        mouth_shape=item["mouth_shape"],
+        tongue_position=item["tongue_position"],
+        animation_key=item.get("animation_key") or f"viseme_{oculus}",
+        description=item.get("description") or "",
+        child_tip=item.get("child_tip") or "",
+        oculus=oculus,
+        pose=pose,
+    )
 
 
 def list_visemes() -> list[VisemeOut]:
-    return [VisemeOut(phoneme=key, **value) for key, value in load_viseme_map().items()]
+    return [item for key in load_viseme_map() if (item := get_viseme(key))]
 
 
 def list_phonemes() -> list[PhonemeOut]:

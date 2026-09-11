@@ -22,6 +22,8 @@ def test_list_lessons(client) -> None:
     lessons = response.json()
     assert len(lessons) >= 5
     assert "text" in lessons[0]
+    assert lessons[0]["phones"]
+    assert lessons[0]["viseme_track"]["frames"]
 
 
 def test_viseme_resource(client) -> None:
@@ -30,6 +32,9 @@ def test_viseme_resource(client) -> None:
     body = response.json()
     assert body["phoneme"] == "æ"
     assert body["child_tip"]
+    assert body["oculus"] == "aa"
+    assert body["pose"]["open"] > 0.7
+    assert body["pose"]["tongue_front"] > 0.6
 
 
 def test_viseme_arpabet_alias(client) -> None:

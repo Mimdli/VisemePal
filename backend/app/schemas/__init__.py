@@ -9,7 +9,10 @@ from app.schemas.dto import (
     RecommendOut,
     RecordOut,
     RecordStatsOut,
+    VisemeFrame,
     VisemeOut,
+    VisemePose,
+    VisemeTrack,
 )
 
 __all__ = [
@@ -23,5 +26,8 @@ __all__ = [
     "RecommendOut",
     "RecordOut",
     "RecordStatsOut",
+    "VisemeFrame",
     "VisemeOut",
+    "VisemePose",
+    "VisemeTrack",
 ]

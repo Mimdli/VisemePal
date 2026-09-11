@@ -18,6 +18,19 @@ class AudioError(RuntimeError):
     pass
 
 
+def wav_duration_ms(path: Path) -> int | None:
+    if not path.exists():
+        return None
+    try:
+        with wave.open(str(path), "rb") as wf:
+            rate = wf.getframerate()
+            if not rate:
+                return None
+            return int(wf.getnframes() / rate * 1000)
+    except wave.Error:
+        return None
+
+
 def prepare_for_ise(src: Path, work_dir: Path) -> Path:
     work_dir.mkdir(parents=True, exist_ok=True)
     wav_path = work_dir / f"{src.stem}_16k.wav"

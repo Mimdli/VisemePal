@@ -12,6 +12,34 @@ class HealthOut(BaseModel):
     llm_ready: bool = False
 
 
+class VisemePose(BaseModel):
+    open: float = 0.08
+    width: float = 0.35
+    round: float = 0.0
+    pucker: float = 0.0
+    close: float = 0.0
+    bite: float = 0.0
+    teeth: float = 0.15
+    tongue_front: float = 0.35
+    tongue_high: float = 0.35
+    tongue_tip: float = 0.0
+    tongue_curl: float = 0.0
+
+
+class VisemeFrame(BaseModel):
+    phoneme: str
+    viseme: str
+    start_ms: int
+    duration_ms: int
+    pose: VisemePose
+    focus: bool = False
+
+
+class VisemeTrack(BaseModel):
+    duration_ms: int
+    frames: list[VisemeFrame] = Field(default_factory=list)
+
+
 class LessonOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -23,6 +51,8 @@ class LessonOut(BaseModel):
     target_phonemes: list[str] = Field(default_factory=list)
     level: str
     tip: str = ""
+    phones: list[str] = Field(default_factory=list)
+    viseme_track: VisemeTrack | None = None
 
 
 class PhonemeError(BaseModel):
@@ -52,6 +82,8 @@ class VisemeOut(BaseModel):
     animation_key: str
     description: str
     child_tip: str
+    oculus: str = "sil"
+    pose: VisemePose = Field(default_factory=VisemePose)
 
 
 class RecordOut(BaseModel):
