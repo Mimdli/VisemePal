@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import api_router
@@ -10,6 +11,7 @@ from app.db import Base, SessionLocal, engine
 from app.models import Lesson, PracticeRecord, User  # noqa: F401
 from app.schemas import HealthOut
 from app.seed import seed_if_empty
+from app.services.ise import has_ise_credentials
 
 STATIC_DIR = BACKEND_DIR / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,9 +37,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(api_router)
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def dev_console():
+    return FileResponse(STATIC_DIR / "web" / "index.html")
 
 
 @app.get("/health", response_model=HealthOut, tags=["system"])
 def health() -> HealthOut:
-    return HealthOut(name=settings.app_name)
+    return HealthOut(
+        name=settings.app_name,
+        ise_ready=has_ise_credentials(),
+        llm_ready=bool(settings.llm_api_key.strip()),
+    )
+
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

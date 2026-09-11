@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VisemePal 开发控制台</title>
+  <link rel="stylesheet" href="/static/web/app.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="eyebrow">开发预览 · 不是儿童正式 App</p>
+      <h1>VisemePal</h1>
+    </div>
+    <div class="status" id="status">
+      <span class="pill">检测中…</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button type="button" class="active" data-tab="practice">跟读评测</button>
+    <button type="button" data-tab="viseme">口型舌位</button>
+    <button type="button" data-tab="records">练习记录</button>
+    <button type="button" data-tab="plan">训练计划</button>
+  </nav>
+
+  <main>
+    <section id="practice" class="panel active">
+      <div class="grid two">
+        <article class="card">
+          <h2>课程</h2>
+          <p class="hint">选一课后听示范，再录音或上传音频评测。</p>
+          <div id="lessons" class="lesson-list">加载中…</div>
+        </article>
+        <article class="card">
+          <h2 id="practice-title">先选一课</h2>
+          <p id="practice-meta" class="hint"></p>
+          <audio id="demo-audio" controls hidden></audio>
+          <div class="row">
+            <button type="button" id="play-demo" disabled>听示范</button>
+            <button type="button" id="rec-btn" disabled>开始录音</button>
+            <label class="file-btn">
+              上传音频
+              <input id="file-input" type="file" accept="audio/*,.wav,.m4a,.mp3,.webm" hidden />
+            </label>
+            <button type="button" class="primary" id="eval-btn" disabled>评测</button>
+          </div>
+          <p id="rec-state" class="hint"></p>
+          <div id="result" class="result empty">评测结果会出现在这里。</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="viseme" class="panel">
+      <div class="grid two">
+        <article class="card">
+          <h2>音素资源库</h2>
+          <div id="phonemes" class="chip-list">加载中…</div>
+        </article>
+        <article class="card viseme-card">
+          <h2>示意图（开发占位）</h2>
+          <p class="hint">还不是数字人动画，用口型/舌位描述驱动一张示意图，方便核对资源。</p>
+          <div class="viseme-stage">
+            <svg id="face" viewBox="0 0 220 240" aria-label="口型舌位示意图">
+              <ellipse cx="110" cy="118" rx="78" ry="92" fill="#ffe8d2" stroke="#1e2a2a" stroke-width="3"/>
+              <circle cx="82" cy="96" r="7" fill="#1e2a2a"/>
+              <circle cx="138" cy="96" r="7" fill="#1e2a2a"/>
+              <path id="tongue" d="M90 168 C110 176 110 176 130 168 C128 182 92 182 90 168Z" fill="#e07a7a"/>
+              <path id="mouth" d="M78 156 C110 168 110 168 142 156" fill="none" stroke="#c45c4a" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div id="viseme-text" class="result empty">点左侧音素查看口型和舌位。</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="records" class="panel">
+      <div class="grid two">
+        <article class="card">
+          <h2>统计</h2>
+          <div id="stats">加载中…</div>
+        </article>
+        <article class="card">
+          <h2>最近记录</h2>
+          <div id="record-list">加载中…</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="plan" class="panel">
+      <article class="card">
+        <div class="row">
+          <h2>个性化训练计划</h2>
+          <button type="button" id="refresh-plan">重新生成</button>
+        </div>
+        <p id="plan-source" class="hint"></p>
+        <div id="plan-body">加载中…</div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/static/web/app.js"></script>
+</body>
+</html>

@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field
 class HealthOut(BaseModel):
     status: str = "ok"
     name: str
+    ise_ready: bool = False
+    llm_ready: bool = False
 
 
 class LessonOut(BaseModel):

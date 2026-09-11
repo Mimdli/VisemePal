@@ -3,6 +3,13 @@ from pathlib import Path
 from tests.conftest import write_silence_wav
 
 
+def test_dev_console(client) -> None:
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "开发控制台" in response.text
+    assert "/static/web/app.js" in response.text
+
+
 def test_health(client) -> None:
     response = client.get("/health")
     assert response.status_code == 200
