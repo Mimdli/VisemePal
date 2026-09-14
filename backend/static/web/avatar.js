@@ -1,3 +1,5 @@
+import { TalkingHead } from "talkinghead";
+
 const REST = {
   open: 0.08,
   width: 0.35,
@@ -12,42 +14,44 @@ const REST = {
   tongue_curl: 0,
 };
 
+const OCULUS = ["sil", "PP", "FF", "TH", "DD", "kk", "CH", "SS", "nn", "RR", "aa", "E", "I", "O", "U"];
+
+const RPM_TARGETS = "ARKit,Oculus Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown";
+
+function rpmUrl(idOrUrl) {
+  const raw = (idOrUrl || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("/")) return raw;
+  if (raw.startsWith("http")) {
+    const url = new URL(raw);
+    if (!url.searchParams.get("morphTargets")) {
+      url.searchParams.set("morphTargets", RPM_TARGETS);
+      url.searchParams.set("textureSizeLimit", "1024");
+      url.searchParams.set("textureFormat", "png");
+    }
+    return `${window.location.origin}/avatars/fetch?src=${encodeURIComponent(url.toString())}`;
+  }
+  return `${window.location.origin}/avatars/${raw.replace(/\.glb$/i, "")}.glb`;
+}
+
 const PRESETS = {
   peach: {
-    name: "小桃",
-    skin: "#ffd8b5",
-    blush: "#ff9aa8",
-    hair: "#5a3826",
-    shirt: "#2bb3a8",
-    eyeWhite: "#fffdf8",
-    iris: "#4f7a52",
-    lip: "#e56b73",
-    accent: "#ff8aa0",
-    hairStyle: "bob",
+    name: "小雅",
+    body: "F",
+    file: "brunette",
+    mood: "neutral",
   },
   cocoa: {
-    name: "可可",
-    skin: "#d19a6c",
-    blush: "#e07a6a",
-    hair: "#2b1810",
-    shirt: "#ff8a65",
-    eyeWhite: "#fffdf8",
-    iris: "#5c3a24",
-    lip: "#c45c58",
-    accent: "#ffb347",
-    hairStyle: "puffs",
+    name: "阿凯",
+    body: "M",
+    file: "avatarsdk",
+    mood: "neutral",
   },
   snow: {
     name: "小雪",
-    skin: "#ffe2cf",
-    blush: "#ffb3c1",
-    hair: "#8b572a",
-    shirt: "#7b93e6",
-    eyeWhite: "#fffdf8",
-    iris: "#4a6fa5",
-    lip: "#e07a84",
-    accent: "#c5d0ff",
-    hairStyle: "tails",
+    body: "F",
+    file: "avaturn",
+    mood: "happy",
   },
 };
 
@@ -64,7 +68,7 @@ function mixPose(from, to, t) {
 }
 
 function prepareCanvas(canvas) {
-  const w = Number(canvas.getAttribute("width")) || canvas.width || 320;
+  const w = Number(canvas.getAttribute("width")) || canvas.width || 280;
   const h = Number(canvas.getAttribute("height")) || canvas.height || 380;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(w * dpr);
@@ -90,36 +94,134 @@ function ellipse(ctx, x, y, rx, ry) {
   ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
 }
 
+export class AvatarRig {
+  constructor() {
+    this.node = document.createElement("div");
+    this.node.className = "avatar-world";
+    this.node.style.width = "320px";
+    this.node.style.height = "380px";
+    this.head = null;
+    this.ready = false;
+    this.look = "peach";
+    this.currentViseme = "sil";
+    this.status = "正在加载真人数字人…";
+  }
+
+  async init() {
+    if (this.head) return;
+    this.head = new TalkingHead(this.node, {
+      lipsyncModules: [],
+      cameraView: "head",
+      cameraZoomEnable: true,
+      cameraRotateEnable: true,
+      avatarMute: true,
+      avatarMood: "neutral",
+      modelPixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      modelFPS: 30,
+    });
+    await this.setLook(this.look);
+  }
+
+  mount(host) {
+    if (!host) return;
+    host.querySelectorAll(".avatar-loading").forEach((node) => node.remove());
+    if (this.node.parentElement !== host) {
+      host.appendChild(this.node);
+    }
+    if (!this.ready) {
+      let tip = host.querySelector(".avatar-status");
+      if (!tip) {
+        tip = document.createElement("p");
+        tip.className = "avatar-status";
+        host.appendChild(tip);
+      }
+      tip.textContent = this.status;
+    } else {
+      host.querySelector(".avatar-status")?.remove();
+      this.head?.start();
+    }
+  }
+
+  async setLook(name, customUrl) {
+    const spec = { ...(PRESETS[name] || PRESETS.peach) };
+    spec.url = customUrl ? rpmUrl(customUrl) : `${window.location.origin}/avatars/${spec.file}.glb`;
+    this.look = PRESETS[name] ? name : "peach";
+    this.status = `正在加载 ${spec.name}…`;
+    this.ready = false;
+    if (!this.head) return;
+    try {
+      await this.head.showAvatar({
+        url: spec.url,
+        body: spec.body || "F",
+        avatarMood: spec.mood || "neutral",
+        lipsyncHeadMovement: true,
+      });
+      this.ready = true;
+      this.status = "";
+      this.node.parentElement?.querySelector(".avatar-status")?.remove();
+      this.head.setView("head");
+      this.setViseme(this.currentViseme);
+    } catch (error) {
+      this.status = `数字人加载失败：${error.message || error}`;
+      const host = this.node.parentElement;
+      if (host) {
+        let tip = host.querySelector(".avatar-status");
+        if (!tip) {
+          tip = document.createElement("p");
+          tip.className = "avatar-status";
+          host.appendChild(tip);
+        }
+        tip.textContent = this.status;
+      }
+      throw error;
+    }
+  }
+
+  setViseme(viseme) {
+    const key = OCULUS.includes(viseme) ? viseme : "sil";
+    this.currentViseme = key;
+    if (!this.head?.mtAvatar) return;
+    const weight = key === "PP" || key === "FF" ? 0.9 : key === "sil" ? 0 : 0.72;
+    OCULUS.forEach((name) => {
+      this.head.setValue(`viseme_${name}`, name === key ? weight : 0, 90);
+    });
+  }
+}
+
+export const sharedRig = new AvatarRig();
+
 export class DigitalHuman {
   constructor({ front, side, look = "peach" }) {
-    this.frontCanvas = front;
-    this.sideCanvas = side;
-    this.frontView = prepareCanvas(front);
+    this.front = front;
     this.sideView = prepareCanvas(side);
-    this.look = { ...PRESETS[look] };
+    this.rig = sharedRig;
+    this.look = look;
     this.pose = { ...REST };
     this.target = { ...REST };
     this.track = null;
     this.audio = null;
     this.playing = false;
     this.label = "";
-    this.blink = 0;
+    this.viseme = "sil";
     this.t0 = performance.now();
     this.onFrame = null;
     this._loop = this._loop.bind(this);
     requestAnimationFrame(this._loop);
   }
 
-  setLook(name) {
-    if (PRESETS[name]) this.look = { ...PRESETS[name] };
+  setLook(name, customUrl) {
+    this.look = name;
+    return this.rig.setLook(name, customUrl);
   }
 
-  hold(pose, label = "") {
+  hold(pose, label = "", viseme = "sil") {
     this.playing = false;
     this.track = null;
     this.label = label;
+    this.viseme = viseme || "sil";
     this.target = { ...REST, ...pose };
     this.pose = { ...this.target };
+    this.rig.setViseme(this.viseme);
   }
 
   speak(track, audio, { play = true } = {}) {
@@ -141,6 +243,7 @@ export class DigitalHuman {
   stop() {
     this.playing = false;
     this.target = { ...REST };
+    this.rig.setViseme("sil");
     if (this.audio) this.audio.pause();
   }
 
@@ -157,9 +260,6 @@ export class DigitalHuman {
   _loop(now) {
     const dt = Math.min(0.05, (now - this.t0) / 1000);
     this.t0 = now;
-    const cycle = (now / 1000) % 3.6;
-    this.blink = cycle < 0.16 ? Math.sin((cycle / 0.16) * Math.PI) : 0;
-    this.bob = Math.sin(now / 740) * (this.playing ? 0.6 : 1.8);
 
     if (this.playing && this.track) {
       let timeMs = 0;
@@ -173,7 +273,9 @@ export class DigitalHuman {
       const frame = this.currentFrame(timeMs);
       if (frame) {
         this.target = { ...REST, ...frame.pose };
+        this.viseme = frame.viseme || "sil";
         this.label = frame.phoneme ? `/${frame.phoneme}/` : "";
+        this.rig.setViseme(this.viseme);
         if (this.onFrame) this.onFrame(frame, timeMs);
       }
       const finished = this.audio ? this.audio.ended : timeMs >= this.track.duration_ms;
@@ -181,6 +283,7 @@ export class DigitalHuman {
         this.playing = false;
         this.target = { ...REST };
         this.label = "";
+        this.rig.setViseme("sil");
         if (this.onFrame) this.onFrame(null, timeMs);
       }
     }
@@ -188,284 +291,12 @@ export class DigitalHuman {
     Object.keys(REST).forEach((key) => {
       this.pose[key] = lerp(this.pose[key], this.target[key], 1 - Math.exp(-dt * 14));
     });
-    this.drawFront();
     this.drawSide();
     requestAnimationFrame(this._loop);
   }
 
-  drawFront() {
-    const { ctx, w, h } = this.frontView;
-    const look = this.look;
-    const p = this.pose;
-    ctx.clearRect(0, 0, w, h);
-    const bg = ctx.createLinearGradient(0, 0, 0, h);
-    bg.addColorStop(0, "#fffaf3");
-    bg.addColorStop(1, "#f3ece2");
-    ctx.fillStyle = bg;
-    roundRect(ctx, 8, 8, w - 16, h - 16, 28);
-    ctx.fill();
-
-    ctx.save();
-    ctx.translate(0, this.bob);
-
-    this.drawBody(ctx, 160, 318, look);
-    this.drawHairBack(ctx, 160, 156, look);
-    this.drawNeck(ctx, 160, 252, look);
-    this.drawHead(ctx, 160, 156, look);
-    this.drawEars(ctx, 160, 168, look);
-    this.drawHairFront(ctx, 160, 156, look);
-    this.drawFace(ctx, 160, 156, p, look);
-
-    ctx.restore();
-
-    if (this.label) {
-      ctx.fillStyle = "#1a7c75";
-      ctx.font = "600 13px 'PingFang SC', sans-serif";
-      ctx.fillText(this.label, 22, 32);
-    }
-  }
-
-  drawBody(ctx, x, y, look) {
-    ctx.fillStyle = "rgba(30, 42, 42, 0.08)";
-    ellipse(ctx, x, y + 42, 70, 12);
-    ctx.fill();
-    ctx.fillStyle = look.shirt;
-    ctx.beginPath();
-    ctx.moveTo(x - 70, y + 44);
-    ctx.quadraticCurveTo(x - 88, y - 8, x - 28, y - 22);
-    ctx.lineTo(x + 28, y - 22);
-    ctx.quadraticCurveTo(x + 88, y - 8, x + 70, y + 44);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.2)";
-    roundRect(ctx, x - 36, y - 4, 28, 14, 7);
-    ctx.fill();
-  }
-
-  drawNeck(ctx, x, y, look) {
-    ctx.fillStyle = look.skin;
-    roundRect(ctx, x - 16, y - 8, 32, 34, 12);
-    ctx.fill();
-  }
-
-  drawHead(ctx, x, y, look) {
-    ctx.fillStyle = look.skin;
-    ellipse(ctx, x, y, 86, 94);
-    ctx.fill();
-  }
-
-  drawEars(ctx, x, y, look) {
-    ctx.fillStyle = look.skin;
-    ellipse(ctx, x - 84, y + 8, 14, 20);
-    ctx.fill();
-    ellipse(ctx, x + 84, y + 8, 14, 20);
-    ctx.fill();
-    ctx.fillStyle = look.blush;
-    ctx.globalAlpha = 0.35;
-    ellipse(ctx, x - 84, y + 10, 8, 10);
-    ctx.fill();
-    ellipse(ctx, x + 84, y + 10, 8, 10);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-
-  drawHairBack(ctx, x, y, look) {
-    ctx.fillStyle = look.hair;
-    if (look.hairStyle === "puffs") {
-      ellipse(ctx, x - 78, y - 18, 36, 36);
-      ctx.fill();
-      ellipse(ctx, x + 78, y - 18, 36, 36);
-      ctx.fill();
-    } else if (look.hairStyle === "tails") {
-      ellipse(ctx, x - 70, y + 46, 22, 38);
-      ctx.fill();
-      ellipse(ctx, x + 70, y + 46, 22, 38);
-      ctx.fill();
-      ctx.fillStyle = look.accent;
-      ellipse(ctx, x - 70, y + 18, 10, 8);
-      ctx.fill();
-      ellipse(ctx, x + 70, y + 18, 10, 8);
-      ctx.fill();
-      ctx.fillStyle = look.hair;
-    }
-    ellipse(ctx, x, y - 18, 90, 78);
-    ctx.fill();
-  }
-
-  drawHairFront(ctx, x, y, look) {
-    ctx.fillStyle = look.hair;
-    ctx.beginPath();
-    ctx.moveTo(x - 82, y - 24);
-    ctx.quadraticCurveTo(x - 50, y - 92, x, y - 98);
-    ctx.quadraticCurveTo(x + 50, y - 92, x + 82, y - 24);
-    ctx.quadraticCurveTo(x + 40, y - 8, x + 18, y - 28);
-    ctx.quadraticCurveTo(x, y - 6, x - 18, y - 28);
-    ctx.quadraticCurveTo(x - 40, y - 8, x - 82, y - 24);
-    ctx.fill();
-
-    if (look.hairStyle === "bob") {
-      ctx.fillStyle = look.accent;
-      ellipse(ctx, x + 48, y - 42, 11, 11);
-      ctx.fill();
-      ctx.fillStyle = "#fff6";
-      ellipse(ctx, x + 45, y - 45, 4, 4);
-      ctx.fill();
-    }
-  }
-
-  drawFace(ctx, x, y, p, look) {
-    ctx.fillStyle = look.blush;
-    ctx.globalAlpha = 0.38;
-    ellipse(ctx, x - 52, y + 28, 18, 10);
-    ctx.fill();
-    ellipse(ctx, x + 52, y + 28, 18, 10);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    this.drawEye(ctx, x - 32, y - 4, look, -1);
-    this.drawEye(ctx, x + 32, y - 4, look, 1);
-
-    ctx.strokeStyle = look.hair;
-    ctx.lineWidth = 3.2;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(x - 48, y - 28);
-    ctx.quadraticCurveTo(x - 32, y - 38, x - 14, y - 28);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x + 14, y - 28);
-    ctx.quadraticCurveTo(x + 32, y - 38, x + 48, y - 28);
-    ctx.stroke();
-
-    ctx.strokeStyle = "rgba(90, 56, 48, 0.45)";
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(x - 5, y + 18);
-    ctx.quadraticCurveTo(x, y + 26, x + 5, y + 18);
-    ctx.stroke();
-
-    this.drawMouth(ctx, x, y + 52, p, look);
-  }
-
-  drawEye(ctx, x, y, look, dir) {
-    const open = 1 - this.blink * 0.92;
-    ctx.fillStyle = look.eyeWhite;
-    ellipse(ctx, x, y, 16, 18 * Math.max(open, 0.12));
-    ctx.fill();
-
-    if (open < 0.22) {
-      ctx.strokeStyle = look.hair;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x - 15, y);
-      ctx.quadraticCurveTo(x, y + 3, x + 15, y);
-      ctx.stroke();
-      return;
-    }
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(x, y, 16, 18 * open, 0, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.fillStyle = look.iris;
-    ellipse(ctx, x + dir * 2, y + 1, 10, 11);
-    ctx.fill();
-    ctx.fillStyle = "#1a1512";
-    ellipse(ctx, x + dir * 2, y + 2, 5, 6);
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ellipse(ctx, x - 3, y - 4, 4, 5);
-    ctx.fill();
-    ellipse(ctx, x + 5, y + 4, 2, 2.4);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.strokeStyle = look.hair;
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(x - 16, y - 6 * open);
-    ctx.quadraticCurveTo(x, y - 16 * open, x + 16, y - 6 * open);
-    ctx.stroke();
-  }
-
-  drawMouth(ctx, cx, cy, p, look) {
-    const closed = p.close > 0.55;
-    const open = Math.min(0.82, p.open) * (1 - p.close * 0.95);
-    const half = 11 + p.width * 15 - p.round * 6 - p.pucker * 7;
-    const height = 5 + open * 32;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-    if (closed) {
-      ctx.strokeStyle = look.lip;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(cx - 10, cy);
-      ctx.quadraticCurveTo(cx, cy + 2, cx + 10, cy);
-      ctx.stroke();
-      return;
-    }
-
-    if (open < 0.12) {
-      ctx.strokeStyle = look.lip;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(cx - 12, cy);
-      ctx.quadraticCurveTo(cx, cy + 6, cx + 12, cy);
-      ctx.stroke();
-      return;
-    }
-
-    ctx.fillStyle = "#9a4552";
-    ctx.beginPath();
-    ctx.moveTo(cx - half, cy);
-    ctx.quadraticCurveTo(cx, cy - 3 + p.round * 5, cx + half, cy);
-    ctx.quadraticCurveTo(cx, cy + height, cx - half, cy);
-    ctx.fill();
-
-    if (p.teeth > 0.18 && open > 0.2) {
-      ctx.fillStyle = "#fff8f2";
-      roundRect(ctx, cx - half * 0.58, cy + 1, half * 1.16, Math.min(6, height * 0.28), 2.5);
-      ctx.fill();
-    }
-
-    if (open > 0.22) {
-      const tip = p.tongue_tip;
-      ctx.fillStyle = "#f29a9a";
-      ellipse(
-        ctx,
-        cx + (p.tongue_front - 0.45) * 5,
-        cy + height * 0.62 - p.tongue_high * 5 - tip * 7,
-        6 + tip * 5,
-        3.5 + open * 5 + tip * 5,
-      );
-      ctx.fill();
-    }
-
-    ctx.strokeStyle = look.lip;
-    ctx.lineWidth = 3.4;
-    ctx.beginPath();
-    ctx.moveTo(cx - half, cy);
-    ctx.quadraticCurveTo(cx, cy - 5 + p.pucker * 4 + p.round * 5, cx + half, cy);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx - half + 1, cy + 1);
-    ctx.quadraticCurveTo(cx, cy + height + 1, cx + half - 1, cy + 1);
-    ctx.stroke();
-
-    if (p.bite > 0.4) {
-      ctx.fillStyle = look.skin;
-      ellipse(ctx, cx, cy + 9, 15, 5);
-      ctx.fill();
-      ctx.fillStyle = "#fff8f2";
-      roundRect(ctx, cx - 13, cy + 1, 26, 4, 2);
-      ctx.fill();
-    }
-  }
-
   drawSide() {
     const { ctx, w, h } = this.sideView;
-    const look = this.look;
     const p = this.pose;
     ctx.clearRect(0, 0, w, h);
     const bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -477,17 +308,11 @@ export class DigitalHuman {
 
     ctx.fillStyle = "#1a7c75";
     ctx.font = "600 13px 'PingFang SC', sans-serif";
-    ctx.fillText("侧面", 22, 28);
-
-    ctx.save();
-    ctx.translate(0, this.bob * 0.3);
-    this.drawCuteProfile(ctx, 150, 118, p, look);
-    ctx.restore();
-
-    this.drawTongueChart(ctx, 24, 214, w - 48, 132, p);
+    ctx.fillText(this.label || "口腔示意图", 22, 28);
+    this.drawTongueChart(ctx, 20, 40, w - 40, h - 78, p);
     ctx.fillStyle = "#5b6666";
     ctx.font = "12px 'PingFang SC', sans-serif";
-    ctx.fillText(this.tongueHint(p), 24, h - 18);
+    ctx.fillText(this.tongueHint(p), 22, h - 18);
   }
 
   tongueHint(p) {
@@ -499,136 +324,52 @@ export class DigitalHuman {
     return "看舌头在口腔里的位置";
   }
 
-  drawCuteProfile(ctx, x, y, p, look) {
-    ctx.fillStyle = look.shirt;
-    ctx.beginPath();
-    ctx.moveTo(x - 28, y + 92);
-    ctx.quadraticCurveTo(x - 40, y + 58, x - 6, y + 50);
-    ctx.lineTo(x + 22, y + 50);
-    ctx.quadraticCurveTo(x + 48, y + 62, x + 36, y + 92);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = look.skin;
-    roundRect(ctx, x - 2, y + 38, 16, 22, 8);
-    ctx.fill();
-
-    ctx.fillStyle = look.hair;
-    ellipse(ctx, x - 4, y - 2, 48, 52);
-    ctx.fill();
-
-    ctx.fillStyle = look.skin;
-    ctx.beginPath();
-    ctx.ellipse(x + 4, y + 6, 40, 46, 0.12, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = look.hair;
-    ctx.beginPath();
-    ctx.moveTo(x - 40, y - 4);
-    ctx.quadraticCurveTo(x - 8, y - 58, x + 36, y - 28);
-    ctx.quadraticCurveTo(x + 8, y - 12, x - 24, y + 2);
-    ctx.fill();
-
-    const eyeOpen = 1 - this.blink * 0.85;
-    ctx.fillStyle = look.eyeWhite;
-    ellipse(ctx, x + 16, y - 4, 7, 9 * Math.max(eyeOpen, 0.15));
-    ctx.fill();
-    if (this.blink < 0.7) {
-      ctx.fillStyle = look.iris;
-      ellipse(ctx, x + 18, y - 3, 4, 5);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ellipse(ctx, x + 16, y - 6, 1.6, 2);
-      ctx.fill();
-    }
-
-    ctx.strokeStyle = "rgba(90, 56, 48, 0.4)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x + 38, y + 8);
-    ctx.quadraticCurveTo(x + 46, y + 14, x + 38, y + 18);
-    ctx.stroke();
-
-    ctx.fillStyle = look.blush;
-    ctx.globalAlpha = 0.35;
-    ellipse(ctx, x + 8, y + 18, 8, 5);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    const open = Math.min(0.55, p.open) * (1 - p.close * 0.95);
-    const mx = x + 34;
-    const my = y + 28;
-    if (p.close > 0.55 || open < 0.1) {
-      ctx.beginPath();
-      ctx.moveTo(mx - 8, my);
-      ctx.quadraticCurveTo(mx, my + 4, mx + 8, my);
-      ctx.lineWidth = 3.4;
-      ctx.strokeStyle = look.lip;
-      ctx.lineCap = "round";
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = look.lip;
-      ctx.beginPath();
-      ctx.ellipse(mx, my + open * 6, 7 - p.round * 2, 3 + open * 8, 0.15, 0, Math.PI * 2);
-      ctx.fill();
-      if (p.tongue_tip > 0.5) {
-        ctx.fillStyle = "#f08b8b";
-        ellipse(ctx, mx + 6, my + 2, 5, 3);
-        ctx.fill();
-      }
-    }
-  }
-
   drawTongueChart(ctx, x, y, w, h, p) {
     ctx.fillStyle = "#fff";
     roundRect(ctx, x, y, w, h, 16);
     ctx.fill();
-    ctx.fillStyle = "#1a7c75";
-    ctx.font = "600 12px 'PingFang SC', sans-serif";
-    ctx.fillText("口腔示意图", x + 12, y + 20);
 
     const ox = x + 18;
-    const oy = y + 28;
+    const oy = y + 36;
     ctx.strokeStyle = "#1e2a2a";
     ctx.lineWidth = 2.4;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(ox + 16, oy + 8);
-    ctx.quadraticCurveTo(ox + 8, oy + 40, ox + 22, oy + 78);
+    ctx.quadraticCurveTo(ox + 8, oy + 70, ox + 24, oy + 140);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(ox + 16, oy + 8);
-    ctx.quadraticCurveTo(ox + 90, oy - 4, ox + 128, oy + 28);
+    ctx.quadraticCurveTo(ox + 110, oy - 8, ox + 168, oy + 48);
     ctx.stroke();
 
     ctx.strokeStyle = "#d2c6b6";
-    ctx.lineWidth = 7;
+    ctx.lineWidth = 8;
     ctx.beginPath();
-    ctx.moveTo(ox + 36, oy + 32);
-    ctx.quadraticCurveTo(ox + 86, oy + 18, ox + 118, oy + 40);
+    ctx.moveTo(ox + 42, oy + 52);
+    ctx.quadraticCurveTo(ox + 110, oy + 28, ox + 152, oy + 64);
     ctx.stroke();
 
     ctx.fillStyle = "#fff8f2";
-    roundRect(ctx, ox + 34, oy + 30, 36, 10, 3);
+    roundRect(ctx, ox + 40, oy + 50, 48, 12, 3);
     ctx.fill();
-    const jaw = oy + 62 + Math.min(0.55, p.open) * 18;
-    roundRect(ctx, ox + 48, jaw - 12, 28, 8, 3);
+    const jaw = oy + 108 + Math.min(0.55, p.open) * 28;
+    roundRect(ctx, ox + 62, jaw - 14, 36, 10, 3);
     ctx.fill();
 
     ctx.strokeStyle = "#1e2a2a";
-    ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.moveTo(ox + 22, oy + 78);
-    ctx.quadraticCurveTo(ox + 60, jaw + 8, ox + 110, jaw - 4);
+    ctx.moveTo(ox + 24, oy + 140);
+    ctx.quadraticCurveTo(ox + 80, jaw + 12, ox + 150, jaw);
     ctx.stroke();
 
-    const tipX = ox + 40 + p.tongue_front * 54 + p.tongue_tip * 20;
-    const tipY = oy + 68 - p.tongue_high * 30 - p.tongue_curl * 12 + p.open * 6;
+    const tipX = ox + 52 + p.tongue_front * 70 + p.tongue_tip * 24;
+    const tipY = oy + 116 - p.tongue_high * 46 - p.tongue_curl * 16 + p.open * 8;
     ctx.fillStyle = "#f08b8b";
     ctx.beginPath();
-    ctx.moveTo(ox + 28, oy + 70);
-    ctx.quadraticCurveTo(ox + 48, tipY + 12, tipX, tipY);
-    ctx.quadraticCurveTo(ox + 44, oy + 86, ox + 30, oy + 80);
+    ctx.moveTo(ox + 36, oy + 120);
+    ctx.quadraticCurveTo(ox + 64, tipY + 16, tipX, tipY);
+    ctx.quadraticCurveTo(ox + 58, oy + 148, ox + 38, oy + 136);
     ctx.closePath();
     ctx.fill();
 
@@ -637,9 +378,9 @@ export class DigitalHuman {
     ctx.fill();
     ctx.font = "11px 'PingFang SC', sans-serif";
     ctx.fillText("舌尖", Math.min(tipX + 6, x + w - 40), tipY - 6);
-    ctx.fillText("硬腭", ox + 86, oy + 16);
-    ctx.fillText("齿", ox + 34, oy + 26);
+    ctx.fillText("硬腭", ox + 112, oy + 24);
+    ctx.fillText("齿", ox + 42, oy + 44);
   }
 }
 
-export { PRESETS, REST, mixPose };
+export { PRESETS, REST, mixPose, rpmUrl };

@@ -5,11 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VisemePal 开发控制台</title>
   <link rel="stylesheet" href="/static/web/app.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+      "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.7/modules/talkinghead.mjs"
+    }
+  }
+  </script>
 </head>
 <body>
   <header class="top">
     <div>
-      <p class="eyebrow">开发控制台 · 数字人口型对齐 Oculus / TalkingHead viseme</p>
+      <p class="eyebrow">开发控制台 · TalkingHead 写实数字人 · Oculus viseme 口型</p>
       <h1>VisemePal</h1>
     </div>
     <div class="status" id="status">
@@ -29,8 +38,12 @@
       <div class="grid two">
         <article class="card">
           <h2>课程</h2>
-          <p class="hint">选一课，数字人会按音素时间轴做口型；侧面切开看舌位。可换一套外观。</p>
+          <p class="hint">选一课，真人 3D 数字人按音素做口型；右侧是舌位示意图。可换形象，也可粘贴 Ready Player Me 模型链接。</p>
           <div class="row look-row" data-looks></div>
+          <div class="row avatar-url-row">
+            <input id="avatar-url" type="url" placeholder="Ready Player Me 模型链接或 ID" />
+            <button type="button" id="avatar-url-apply">加载自定义形象</button>
+          </div>
           <div id="lessons" class="lesson-list">加载中…</div>
         </article>
         <article class="card">
@@ -38,7 +51,9 @@
           <p id="practice-meta" class="hint"></p>
           <div class="avatar-row">
             <figure>
-              <canvas id="practice-front" width="320" height="380"></canvas>
+              <div class="avatar-stage" id="practice-front">
+                <p class="avatar-loading">正在加载真人数字人…</p>
+              </div>
               <figcaption>正面口型</figcaption>
             </figure>
             <figure>
@@ -67,7 +82,7 @@
       <div class="grid two">
         <article class="card">
           <h2>音素资源库</h2>
-          <p class="hint">点音素让数字人停在对应口型。三套外观可切换；后续可换成 VRM / Ready Player Me。</p>
+          <p class="hint">点音素让真人数字人停在对应口型。形象与跟读页共用，可换成自己的 Ready Player Me 模型。</p>
           <div class="row look-row" data-looks></div>
           <div id="phonemes" class="chip-list">加载中…</div>
         </article>
@@ -75,7 +90,9 @@
           <h2>口型 + 舌位</h2>
           <div class="avatar-row">
             <figure>
-              <canvas id="inspect-front" width="320" height="380"></canvas>
+              <div class="avatar-stage" id="inspect-front">
+                <p class="avatar-loading">正在加载真人数字人…</p>
+              </div>
               <figcaption>正面口型</figcaption>
             </figure>
             <figure>

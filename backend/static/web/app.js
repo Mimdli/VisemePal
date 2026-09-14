@@ -1,4 +1,4 @@
-import { DigitalHuman, PRESETS } from "./avatar.js";
+import { DigitalHuman, PRESETS, sharedRig } from "./avatar.js";
 
 const state = {
   lessons: [],
@@ -32,7 +32,11 @@ function showTab(name) {
   });
   if (name === "records") loadRecords();
   if (name === "plan") loadPlan();
-  if (name === "viseme") loadPhonemes();
+  if (name === "viseme") {
+    loadPhonemes();
+    sharedRig.mount($("inspect-front"));
+  }
+  if (name === "practice") sharedRig.mount($("practice-front"));
 }
 
 async function api(path, options) {
@@ -96,7 +100,7 @@ function selectLesson(id) {
   $("practice-meta").textContent = `${lesson.text}  ${lesson.ipa}  ·  ${lesson.tip}`;
   renderTrack("practice-track", lesson.viseme_track);
   const focus = lesson.viseme_track?.frames?.find((frame) => frame.focus);
-  if (focus) practiceHuman.hold(focus.pose, `/${focus.phoneme}/`);
+  if (focus) practiceHuman.hold(focus.pose, `/${focus.phoneme}/`, focus.viseme);
   else practiceHuman.hold({});
   const audio = $("demo-audio");
   if (lesson.audio_url) {
@@ -218,7 +222,7 @@ async function showViseme(phoneme) {
   document.querySelectorAll(".chip").forEach((node) => {
     node.classList.toggle("active", node.dataset.ipa === viseme.phoneme);
   });
-  inspectHuman.hold(viseme.pose || {}, `/${viseme.phoneme}/`);
+  inspectHuman.hold(viseme.pose || {}, `/${viseme.phoneme}/`, viseme.oculus);
   $("viseme-text").classList.remove("empty");
   $("viseme-text").innerHTML = `
     <p><b>/${viseme.phoneme}/</b> · Oculus viseme <b>${viseme.oculus}</b></p>
@@ -246,7 +250,7 @@ function renderTrack(id, track) {
     span.addEventListener("click", () => {
       const phone = span.dataset.phoneme;
       const frame = (track.frames || []).find((item) => String(item.start_ms) === span.dataset.start);
-      if (frame) practiceHuman.hold(frame.pose, `/${phone}/`);
+      if (frame) practiceHuman.hold(frame.pose, `/${phone}/`, frame.viseme);
       showTab("viseme");
       showViseme(phone);
     });
@@ -263,13 +267,17 @@ function highlightTrack(id, frame) {
 
 const LOOK_KEY = "visemepal-look";
 
-function applyLook(name) {
-  if (!PRESETS[name]) return;
-  practiceHuman.setLook(name);
-  inspectHuman.setLook(name);
-  localStorage.setItem(LOOK_KEY, name);
+function applyLook(name, customUrl) {
+  if (!PRESETS[name] && !customUrl) return;
+  const look = PRESETS[name] ? name : "peach";
+  inspectHuman.look = look;
+  localStorage.setItem(LOOK_KEY, look);
   document.querySelectorAll("[data-looks] button").forEach((button) => {
-    button.classList.toggle("active", button.dataset.look === name);
+    button.classList.toggle("active", button.dataset.look === look);
+  });
+  if (!customUrl && sharedRig.ready && sharedRig.look === look) return;
+  practiceHuman.setLook(look, customUrl).catch((error) => {
+    $("rec-state").textContent = error.message;
   });
 }
 
@@ -398,8 +406,26 @@ function encodeWav(buffers, sampleRate) {
   return new File([buffer], "record.wav", { type: "audio/wav" });
 }
 
+async function bootAvatar() {
+  sharedRig.mount($("practice-front"));
+  try {
+    await sharedRig.init();
+    sharedRig.mount($("practice-front"));
+    renderLooks();
+  } catch (error) {
+    $("rec-state").textContent = error.message;
+    renderLooks();
+  }
+}
+
+$("avatar-url-apply").addEventListener("click", () => {
+  const url = $("avatar-url").value.trim();
+  if (!url) return;
+  applyLook("peach", url);
+});
+
 loadStatus();
 loadLessons();
 loadPhonemes();
 loadRecords();
-renderLooks();
+bootAvatar();

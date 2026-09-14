@@ -8,6 +8,13 @@ def test_dev_console(client) -> None:
     assert response.status_code == 200
     assert "开发控制台" in response.text
     assert "/static/web/app.js" in response.text
+    assert "talkinghead" in response.text
+
+
+def test_avatar_id_rejected(client) -> None:
+    assert client.get("/avatars/not-an-id.glb").status_code == 400
+    bad = client.get("/avatars/fetch", params={"src": "https://example.com/x.glb"})
+    assert bad.status_code == 400
 
 
 def test_health(client) -> None:

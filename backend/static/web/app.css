@@ -70,6 +70,37 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   display: block;
   background: transparent;
 }
+.avatar-stage {
+  width: min(320px, 100%);
+  height: 380px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #e8eef3;
+  position: relative;
+}
+.avatar-world {
+  width: 100%;
+  height: 100%;
+}
+.avatar-world canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+.avatar-loading, .avatar-status {
+  margin: 0;
+  padding: 24px 16px;
+  color: #5b6666;
+  font-size: 13px;
+  text-align: center;
+}
+.avatar-url-row input {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fff;
+}
 .avatar-row figcaption { font-size: 12px; color: #5b6666; margin-top: 4px; }
 .look-row button.active { background: var(--teal); color: #fff; }
 .phone-track { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; margin: 10px 0; }
