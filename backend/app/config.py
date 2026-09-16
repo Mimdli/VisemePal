@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     debug: bool = True
     database_url: str = f"sqlite:///{BACKEND_DIR / 'var' / 'visemepal.db'}"
     upload_dir: Path = BACKEND_DIR / "uploads"
+    max_upload_bytes: int = 10 * 1024 * 1024
+    min_audio_duration_ms: int = 300
+    min_audio_rms: int = 80
+    upload_retention_days: int = 30
 
     ise_app_id: str = ""
     ise_api_key: str = ""

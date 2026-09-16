@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import array
+from datetime import datetime, timedelta, timezone
+import math
 import shutil
 import struct
 import subprocess
@@ -44,6 +46,39 @@ def prepare_for_ise(src: Path, work_dir: Path) -> Path:
 
     _extract_pcm(wav_path, pcm_path)
     return pcm_path
+
+
+def validate_pcm(
+    path: Path,
+    min_duration_ms: int,
+    min_rms: int,
+) -> None:
+    raw = path.read_bytes()
+    duration_ms = len(raw) / (TARGET_RATE * TARGET_WIDTH) * 1000
+    if duration_ms < min_duration_ms:
+        raise AudioError(f"录音太短，请至少录制 {min_duration_ms / 1000:g} 秒")
+    samples = array.array("h")
+    samples.frombytes(raw)
+    if not samples:
+        raise AudioError("录音是空的，请重新跟读")
+    rms = math.sqrt(sum(sample * sample for sample in samples) / len(samples))
+    if rms < min_rms:
+        raise AudioError("没有检测到清晰语音，请靠近麦克风重新跟读")
+
+
+def cleanup_old_uploads(root: Path, retention_days: int) -> int:
+    if retention_days <= 0 or not root.exists():
+        return 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+    removed = 0
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        modified = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+        if modified < cutoff:
+            path.unlink(missing_ok=True)
+            removed += 1
+    return removed
 
 
 def _is_pcm_wav(path: Path) -> bool:

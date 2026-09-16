@@ -1,4 +1,4 @@
-from app.services.lipsync import build_track, oculus_for_phone, phones_for_text, pose_for_phone
+from app.services.lipsync import build_track, oculus_for_phone, phones_for_text, phones_from_ipa, pose_for_phone
 
 
 def test_cat_track_uses_oculus_visemes() -> None:
@@ -35,3 +35,10 @@ def test_build_track_scales_to_audio_duration() -> None:
     assert track.duration_ms == 1000
     spoken = [frame for frame in track.frames if frame.phoneme]
     assert spoken[0].start_ms < spoken[1].start_ms < spoken[2].start_ms
+
+
+def test_phones_from_ipa_and_unknown_lesson_text() -> None:
+    assert phones_from_ipa("/ðə kæt/") == ["ð", "ə", "k", "æ", "t"]
+    assert phones_from_ipa("/laɪt/") == ["l", "aɪ", "t"]
+    assert phones_for_text("hat", "/hæt/") == ["h", "æ", "t"]
+    assert phones_for_text("fat") == ["f", "æ", "t"]

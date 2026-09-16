@@ -24,7 +24,7 @@ def to_lesson_out(lesson: Lesson, request: Request) -> LessonOut:
     payload = LessonOut.model_validate(lesson)
     if payload.audio_url and not payload.audio_url.startswith("http"):
         payload.audio_url = str(request.base_url).rstrip("/") + payload.audio_url
-    phones = phones_for_text(lesson.text)
+    phones = phones_for_text(lesson.text, lesson.ipa)
     payload.phones = phones
     payload.viseme_track = build_track(
         phones,

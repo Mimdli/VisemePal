@@ -31,10 +31,58 @@
       "note": "短元音，口型自然放松"
     },
     {
+      "ipa": "ə",
+      "examples": ["the", "about", "banana"],
+      "common_error": "ʌ",
+      "note": "最放松的弱读音"
+    },
+    {
+      "ipa": "ɑː",
+      "examples": ["car", "father", "arm"],
+      "common_error": "ʌ",
+      "note": "开口靠后，声音拉长"
+    },
+    {
+      "ipa": "ɔː",
+      "examples": ["ball", "four", "door"],
+      "common_error": "ɒ",
+      "note": "圆唇长音，嘴型更圆"
+    },
+    {
+      "ipa": "ʊ",
+      "examples": ["book", "put", "good"],
+      "common_error": "uː",
+      "note": "短圆唇，不要拉得太长"
+    },
+    {
       "ipa": "uː",
       "examples": ["food", "blue", "two"],
       "common_error": "ʊ",
       "note": "双唇收圆，声音拉长"
+    },
+    {
+      "ipa": "ɜː",
+      "examples": ["bird", "nurse", "her"],
+      "common_error": "ə",
+      "note": "舌头略卷，声音拉长"
+    },
+    {
+      "ipa": "aɪ",
+      "examples": ["light", "like", "my"],
+      "common_error": "æ",
+      "note": "从开口滑向展唇"
+    },
+    {
+      "ipa": "eɪ",
+      "examples": ["day", "name", "say"],
+      "common_error": "e",
+      "note": "从 /e/ 滑向 /ɪ/"
+    },
+    {
+      "ipa": "oʊ",
+      "examples": ["go", "home", "no"],
+      "common_error": "ɔː",
+      "note": "圆唇再收得更小"
     },
     {
       "ipa": "θ",
@@ -61,16 +109,22 @@
       "note": "舌尖靠近齿龈，不要圆唇"
     },
     {
+      "ipa": "z",
+      "examples": ["zoo", "is", "has"],
+      "common_error": "s",
+      "note": "部位同 /s/，要发出声音"
+    },
+    {
       "ipa": "v",
       "examples": ["very", "five", "have"],
       "common_error": "w",
-      "note": "上齿轻咬下唇，不要圆唇"
+      "note": "上齿轻咬下唇，不要发成 we"
     },
     {
       "ipa": "w",
       "examples": ["we", "water", "what"],
       "common_error": "v",
-      "note": "双唇收圆前突，齿不碰唇"
+      "note": "双唇收圆，不要碰到牙齿"
     },
     {
       "ipa": "f",
@@ -89,6 +143,60 @@
       "examples": ["red", "right", "run"],
       "common_error": "l",
       "note": "舌尖上卷，不碰齿龈"
+    },
+    {
+      "ipa": "ŋ",
+      "examples": ["think", "sing", "long"],
+      "common_error": "n",
+      "note": "舌头后部抬高，声音走鼻子"
+    },
+    {
+      "ipa": "tʃ",
+      "examples": ["chair", "much", "cheese"],
+      "common_error": "ʃ",
+      "note": "先堵住再送气，像中文「七」但更圆"
+    },
+    {
+      "ipa": "dʒ",
+      "examples": ["jump", "orange", "job"],
+      "common_error": "d",
+      "note": "和 /tʃ/ 同部位，要发出声音"
+    },
+    {
+      "ipa": "p",
+      "examples": ["pen", "apple", "ship"],
+      "common_error": "b",
+      "note": "双唇闭上再送气打开"
+    },
+    {
+      "ipa": "t",
+      "examples": ["cat", "tea", "hat"],
+      "common_error": "d",
+      "note": "舌尖点上牙后面再松开"
+    },
+    {
+      "ipa": "k",
+      "examples": ["cat", "key", "book"],
+      "common_error": "g",
+      "note": "舌头后部堵住再放开"
+    },
+    {
+      "ipa": "d",
+      "examples": ["red", "dog", "bed"],
+      "common_error": "t",
+      "note": "舌尖位置和 /t/ 一样，要出声"
+    },
+    {
+      "ipa": "n",
+      "examples": ["no", "sun", "name"],
+      "common_error": "ŋ",
+      "note": "舌尖抵上齿龈，声音走鼻子"
+    },
+    {
+      "ipa": "h",
+      "examples": ["hat", "hello", "house"],
+      "common_error": "",
+      "note": "嘴巴保持后面元音的口型，轻轻哈气"
     }
   ]
 }

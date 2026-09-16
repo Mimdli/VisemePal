@@ -40,3 +40,22 @@ def write_silence_wav(path: Path, duration_ms: int = 200) -> Path:
         handle.setframerate(16000)
         handle.writeframes(b"\x00\x00" * frames)
     return path
+
+
+def write_tone_wav(path: Path, duration_ms: int = 500) -> Path:
+    import math
+    import struct
+    import wave
+
+    frames = int(16000 * duration_ms / 1000)
+    samples = [
+        int(2000 * math.sin(2 * math.pi * 220 * index / 16000))
+        for index in range(frames)
+    ]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(16000)
+        handle.writeframes(struct.pack(f"<{len(samples)}h", *samples))
+    return path

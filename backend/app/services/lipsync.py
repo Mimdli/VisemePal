@@ -6,6 +6,8 @@ sil, PP, FF, TH, DD, kk, CH, SS, nn, RR, aa, E, I, O, U。
 
 from __future__ import annotations
 
+import re
+
 from app.schemas import VisemeFrame, VisemePose, VisemeTrack
 from app.seed import DEMO_LESSONS
 from app.services.phones import to_ipa
@@ -71,23 +73,71 @@ IPA_TO_OCULUS: dict[str, str] = {
     "uː": "U",
     "w": "U",
     "h": "sil",
+    "ɜː": "RR",
 }
 
 DIPHTHONGS: dict[str, list[str]] = {
     "aɪ": ["æ", "ɪ"],
     "eɪ": ["e", "ɪ"],
-    "oʊ": ["oʊ"],
+    "oʊ": ["ɔ", "ʊ"],
     "aʊ": ["ɑː", "ʊ"],
     "ɔɪ": ["ɔː", "ɪ"],
 }
 
 LONG_MARK = "ː"
+IPA_SKIP = set("/\\|.,;·ˈˌ()[]-–—͡ ")
 
 
-def phones_for_text(text: str) -> list[str]:
+def phones_from_ipa(ipa: str) -> list[str]:
+    """把 /kæt/ 这类标音切成音素，供非预置课文生成口型轨。"""
+    text = (ipa or "").strip()
+    if not text:
+        return []
+    tokens = sorted(set(IPA_TO_OCULUS) | set(DIPHTHONGS), key=len, reverse=True)
+    phones: list[str] = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char in IPA_SKIP or char.isdigit():
+            index += 1
+            continue
+        matched = next((token for token in tokens if text.startswith(token, index)), None)
+        if matched:
+            phones.append(matched)
+            index += len(matched)
+        else:
+            index += 1
+    return phones
+
+
+def _word_phones() -> dict[str, list[str]]:
+    table = {
+        "the": ["ð", "ə"],
+        "is": ["ɪ", "z"],
+        "fat": ["f", "æ", "t"],
+        "a": ["ə"],
+    }
+    for spec in DEMO_LESSONS:
+        word = spec["text"].strip().lower().rstrip(".")
+        if " " not in word and spec.get("phones"):
+            table[word] = list(spec["phones"])
+    return table
+
+
+def phones_for_text(text: str, ipa: str = "") -> list[str]:
     for spec in DEMO_LESSONS:
         if spec["text"] == text:
             return list(spec.get("phones") or [])
+    parsed = phones_from_ipa(ipa)
+    if parsed:
+        return parsed
+    words = re.findall(r"[a-z']+", (text or "").lower())
+    table = _word_phones()
+    if words and all(word in table for word in words):
+        phones: list[str] = []
+        for word in words:
+            phones.extend(table[word])
+        return phones
     return []
 
 
@@ -124,6 +174,8 @@ IPA_POSES: dict[str, VisemePose] = {
     "r": VisemePose(open=0.2, round=0.42, tongue_curl=1.0, tongue_front=0.32, tongue_high=0.48),
     "w": VisemePose(open=0.18, round=1.0, pucker=0.9, width=0.04, tongue_front=0.18, tongue_high=0.52),
     "uː": VisemePose(open=0.2, round=1.0, pucker=0.92, width=0.04, tongue_front=0.12, tongue_high=0.58),
+    "ɜː": VisemePose(open=0.28, round=0.35, tongue_curl=0.7, tongue_front=0.4, tongue_high=0.5),
+    "ʊ": VisemePose(open=0.24, round=0.75, pucker=0.55, width=0.12, tongue_front=0.2, tongue_high=0.5),
 }
 
 

@@ -18,6 +18,7 @@ from websockets.exceptions import WebSocketException
 
 from app.config import settings
 from app.models import Lesson
+from app.services.phones import to_ipa
 
 ISE_HOST = settings.ise_host
 ISE_PATH = settings.ise_path
@@ -112,7 +113,7 @@ async def _stream_evaluate(pcm: bytes, category: str, paper: str) -> str:
                         "text": paper,
                         "rst": "entirety",
                         "ise_unite": "1",
-                        "plev": "0",
+                        "plev": "1",
                         "rstcd": "utf8",
                         "extra_ability": "multi_dimension;syll_phone_err_msg",
                     },
@@ -157,6 +158,14 @@ async def _stream_evaluate(pcm: bytes, category: str, paper: str) -> str:
     return xml_text
 
 
+# 讯飞 ISE dp_message：0 正确，16 漏读，32 增读，64 回读，128 替换。
+DP_KIND = {16: "missing", 32: "extra", 64: "repeat", 128: "substitute"}
+VOWEL_IPA = {
+    "æ", "ɑ", "ɑː", "ʌ", "ə", "e", "ɛ", "ɪ", "i", "iː",
+    "ɔ", "ɔː", "ɒ", "oʊ", "ʊ", "u", "uː", "aɪ", "eɪ", "aʊ", "ɔɪ", "ɜː",
+}
+
+
 def parse_ise_xml(xml_text: str) -> dict:
     root = ET.fromstring(xml_text)
     scores: dict[str, float] = {}
@@ -170,30 +179,91 @@ def parse_ise_xml(xml_text: str) -> dict:
     for element in root.iter():
         for attr, dest in key_map.items():
             if attr in element.attrib and dest not in scores:
-                try:
-                    scores[dest] = float(element.attrib[attr])
-                except ValueError:
-                    continue
+                value = _to_float(element.attrib[attr])
+                if value is not None:
+                    scores[dest] = value
 
     syllable_errors: list[dict] = []
-    error_symbols: list[str] = []
+    phone_errors: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+
     for syll in root.iter("syll"):
         serr = int(syll.attrib.get("serr_msg") or 0)
-        phones = [phone.attrib.get("content", "") for phone in syll.findall("phone")]
-        if serr:
-            syllable_errors.append({"content": syll.attrib.get("content", ""), "serr_msg": serr, "phones": phones})
-            error_symbols.extend(phones)
-        for phone in syll.findall("phone"):
-            dp_message = int(phone.attrib.get("dp_message") or 0)
-            if dp_message in {16, 32}:
-                error_symbols.append(phone.attrib.get("content", ""))
+        phones_el = list(syll.findall("phone"))
+        contents = [node.attrib.get("content", "") for node in phones_el]
+        flagged = [_phone_error(node) for node in phones_el]
+        flagged = [item for item in flagged if item]
+        if not flagged and serr:
+            flagged = _syllable_fallback(phones_el)
+        if serr or flagged:
+            syllable_errors.append(
+                {"content": syll.attrib.get("content", ""), "serr_msg": serr, "phones": contents}
+            )
+        for item in flagged:
+            key = (item["symbol"], item["kind"])
+            if key in seen:
+                continue
+            seen.add(key)
+            phone_errors.append(item)
 
+    error_symbols = [item["symbol"] for item in phone_errors if item.get("symbol")]
     overall = scores.get("overall_score", scores.get("phone_score", 0))
     return {
         "overall_score": overall,
         "accuracy": scores.get("accuracy", overall),
         "fluency": scores.get("fluency", overall),
         "completeness": scores.get("completeness", 100.0 if overall else 0.0),
-        "error_symbols": [symbol for symbol in error_symbols if symbol],
+        "error_symbols": error_symbols,
+        "phone_errors": phone_errors,
         "syllable_errors": syllable_errors,
     }
+
+
+def _to_float(raw: str | None) -> float | None:
+    if raw is None or raw == "":
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def _phone_error(node: ET.Element) -> dict | None:
+    symbol = (node.attrib.get("content") or "").strip()
+    if not symbol:
+        return None
+    dp_message = int(node.attrib.get("dp_message") or 0)
+    score = _to_float(node.attrib.get("score") or node.attrib.get("total_score"))
+    kind = DP_KIND.get(dp_message)
+    low = score is not None and score < settings.error_score_threshold
+    if not kind and not low:
+        return None
+    if not kind:
+        kind = "low_score"
+    return {"symbol": symbol, "kind": kind, "score": score, "dp_message": dp_message}
+
+
+def _syllable_fallback(phones_el: list[ET.Element]) -> list[dict]:
+    """音节标了错、但没有音素级标记时，只点元音，避免把整音节辅音都算错。"""
+    ranked: list[ET.Element] = []
+    others: list[ET.Element] = []
+    for node in phones_el:
+        symbol = (node.attrib.get("content") or "").strip()
+        if not symbol:
+            continue
+        if to_ipa(symbol) in VOWEL_IPA:
+            ranked.append(node)
+        else:
+            others.append(node)
+    chosen = ranked[:1] or others[:1]
+    errors: list[dict] = []
+    for node in chosen:
+        errors.append(
+            {
+                "symbol": node.attrib.get("content", ""),
+                "kind": "syllable",
+                "score": _to_float(node.attrib.get("score") or node.attrib.get("total_score")),
+                "dp_message": int(node.attrib.get("dp_message") or 0),
+            }
+        )
+    return errors

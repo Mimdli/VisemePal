@@ -16,6 +16,9 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     records: Mapped[list["PracticeRecord"]] = relationship(back_populates="user")
+    recommendation_plans: Mapped[list["RecommendationPlan"]] = relationship(
+        back_populates="user"
+    )
 
 
 class Lesson(Base):
@@ -49,3 +52,18 @@ class PracticeRecord(Base):
 
     user: Mapped[User] = relationship(back_populates="records")
     lesson: Mapped[Lesson] = relationship(back_populates="records")
+
+
+class RecommendationPlan(Base):
+    __tablename__ = "recommendation_plans"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    history_signature: Mapped[str] = mapped_column(String(64), index=True)
+    plan_title: Mapped[str] = mapped_column(String(128))
+    summary: Mapped[str] = mapped_column(Text)
+    items: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    source: Mapped[str] = mapped_column(String(32), default="rules")
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped[User] = relationship(back_populates="recommendation_plans")

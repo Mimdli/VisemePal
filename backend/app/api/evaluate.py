@@ -9,9 +9,14 @@ from app.config import settings
 from app.db import get_db
 from app.models import Lesson, PracticeRecord, User
 from app.schemas import EvaluateResult
-from app.services.audio import AudioError, prepare_for_ise
+from app.services.audio import (
+    AudioError,
+    cleanup_old_uploads,
+    prepare_for_ise,
+    validate_pcm,
+)
 from app.services.diagnose import diagnose
-from app.services.ise import IseError, evaluate_audio, has_ise_credentials
+from app.services.ise import IseError, evaluate_audio
 
 router = APIRouter(prefix="/evaluate", tags=["evaluate"])
 
@@ -30,16 +35,27 @@ async def evaluate_pronunciation(
     suffix = Path(audio.filename or "record.wav").suffix or ".wav"
     filename = f"{uuid4().hex}{suffix}"
     dest = settings.upload_dir / filename
-    dest.write_bytes(await audio.read())
-    if dest.stat().st_size == 0:
+    cleanup_old_uploads(settings.upload_dir, settings.upload_retention_days)
+    content = await audio.read(settings.max_upload_bytes + 1)
+    if len(content) > settings.max_upload_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"录音不能超过 {settings.max_upload_bytes // (1024 * 1024)} MB",
+        )
+    if not content:
         raise HTTPException(status_code=400, detail="录音是空的，请重新跟读")
+    dest.write_bytes(content)
 
     try:
         pcm_path = prepare_for_ise(dest, settings.upload_dir / "pcm")
+        validate_pcm(
+            pcm_path,
+            min_duration_ms=settings.min_audio_duration_ms,
+            min_rms=settings.min_audio_rms,
+        )
     except AudioError as exc:
-        if has_ise_credentials():
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        pcm_path = dest
+        dest.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     try:
         ise_result = await evaluate_audio(pcm_path, lesson)

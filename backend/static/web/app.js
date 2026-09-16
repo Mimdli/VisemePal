@@ -188,10 +188,20 @@ function renderResult(result) {
   `;
   $("result").querySelectorAll(".error-btn").forEach((button) => {
     button.addEventListener("click", () => {
+      const item = errors.find((error) => error.phoneme === button.dataset.phoneme);
+      const viseme = item?.viseme;
+      if (viseme) {
+        practiceHuman.hold(viseme.pose || {}, `/${viseme.phoneme}/`, viseme.oculus);
+      }
       showTab("viseme");
       showViseme(button.dataset.phoneme);
     });
   });
+  if (result.viseme_track) {
+    renderTrack("practice-track", result.viseme_track);
+    const focus = result.viseme_track.frames?.find((frame) => frame.focus) || result.viseme_track.frames?.[1];
+    if (focus) practiceHuman.hold(focus.pose, `/${focus.phoneme || ""}/`, focus.viseme);
+  }
 }
 
 let phonemePromise = null;

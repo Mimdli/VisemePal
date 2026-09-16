@@ -159,5 +159,82 @@
     "animation_key": "viseme_iy",
     "description": "与长音 /iː/ 部位相同，时长更短。",
     "child_tip": "像微笑一样把嘴拉开。"
+  },
+  "ɑː": {
+    "mouth_shape": "开口靠后",
+    "tongue_position": "舌后部放低",
+    "animation_key": "viseme_aa",
+    "description": "开口大、舌位靠后的长元音。",
+    "child_tip": "嘴巴张大，声音拉长，舌头往后躺，像 car。"
+  },
+  "ɔː": {
+    "mouth_shape": "圆唇中开口",
+    "tongue_position": "舌后部略抬",
+    "animation_key": "viseme_ao",
+    "description": "圆唇长音，开口小于 /ɑː/。",
+    "child_tip": "嘴唇收圆，声音拉长，像 ball。"
+  },
+  "ʊ": {
+    "mouth_shape": "微圆",
+    "tongue_position": "舌后部略抬",
+    "animation_key": "viseme_uh",
+    "description": "短圆唇元音，不要拉长。",
+    "child_tip": "嘴唇轻轻收圆，声音短短的，像 book。"
+  },
+  "ɜː": {
+    "mouth_shape": "微圆微开",
+    "tongue_position": "舌中部略抬、略卷",
+    "animation_key": "viseme_er",
+    "description": "卷舌长元音。",
+    "child_tip": "舌头向后卷一点，声音拉长，像 bird。"
+  },
+  "aɪ": {
+    "mouth_shape": "从大开口滑到展唇",
+    "tongue_position": "舌位从低到前高",
+    "animation_key": "viseme_ay",
+    "description": "双元音，先张大再收到 /ɪ/。",
+    "child_tip": "先把嘴巴张大，再慢慢收到微笑口型，像 light。"
+  },
+  "eɪ": {
+    "mouth_shape": "从扁唇中开滑到展唇",
+    "tongue_position": "舌前部逐渐抬高",
+    "animation_key": "viseme_ey",
+    "description": "双元音，从 /e/ 滑向 /ɪ/。",
+    "child_tip": "先说一点点 /e/，再收到微笑口型，像 day。"
+  },
+  "oʊ": {
+    "mouth_shape": "圆唇再收小",
+    "tongue_position": "舌后部略抬",
+    "animation_key": "viseme_ow",
+    "description": "双元音，圆唇后继续收圆。",
+    "child_tip": "嘴唇先收成圆，再收得更小一点，像 go。"
+  },
+  "tʃ": {
+    "mouth_shape": "双唇略圆后打开",
+    "tongue_position": "舌前部接近硬腭",
+    "animation_key": "viseme_ch",
+    "description": "塞擦音，先堵住再送气。",
+    "child_tip": "舌头先堵住，再发出「吃」的气声，像 chair。"
+  },
+  "dʒ": {
+    "mouth_shape": "双唇略圆后打开",
+    "tongue_position": "舌前部接近硬腭，声带振动",
+    "animation_key": "viseme_jh",
+    "description": "与 /tʃ/ 同部位，声带振动。",
+    "child_tip": "位置和 chair 一样，但要发出声音，像 jump。"
+  },
+  "n": {
+    "mouth_shape": "微开",
+    "tongue_position": "舌尖抵上齿龈，气流走鼻子",
+    "animation_key": "viseme_n",
+    "description": "齿龈鼻音。",
+    "child_tip": "舌尖点上牙后面，声音从鼻子出来。"
+  },
+  "h": {
+    "mouth_shape": "随后面的元音变化",
+    "tongue_position": "声门送气，舌位看后面的元音",
+    "animation_key": "viseme_sil",
+    "description": "清喉擦音，口型跟着后面的元音走。",
+    "child_tip": "轻轻哈一口气，嘴巴做成后面那个音的样子。"
   }
 }

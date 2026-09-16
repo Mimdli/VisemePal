@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from tests.conftest import write_silence_wav
+from tests.conftest import write_silence_wav, write_tone_wav
 
 
 def test_dev_console(client) -> None:
@@ -54,11 +54,11 @@ def test_phoneme_bank(client) -> None:
     response = client.get("/phonemes")
     assert response.status_code == 200
     ipas = {item["ipa"] for item in response.json()}
-    assert {"æ", "θ", "ð", "ʃ"} <= ipas
+    assert {"æ", "θ", "ð", "ʃ", "ŋ", "ə", "aɪ"} <= ipas
 
 
 def test_evaluate_and_recommend(client, tmp_path: Path) -> None:
-    audio = write_silence_wav(tmp_path / "demo.wav")
+    audio = write_tone_wav(tmp_path / "demo.wav")
     files = {"audio": ("demo.wav", audio.read_bytes(), "audio/wav")}
     response = client.post("/evaluate", data={"lesson_id": 1}, files=files)
     assert response.status_code == 200
@@ -67,10 +67,20 @@ def test_evaluate_and_recommend(client, tmp_path: Path) -> None:
     assert result["record_id"]
     assert result["provider"] == "stub"
     assert result["error_phonemes"]
+    assert result["error_phonemes"][0]["viseme"]["oculus"]
+    assert result["viseme_track"]["frames"]
 
     records = client.get("/records")
     assert records.status_code == 200
     assert len(records.json()) >= 1
+    record = records.json()[0]
+    assert record["lesson_title"]
+    assert record["text"]
+    assert record["accuracy"] >= 0
+    assert record["audio_url"].endswith(f"/records/{record['id']}/audio")
+    audio_response = client.get(f"/records/{record['id']}/audio")
+    assert audio_response.status_code == 200
+    assert audio_response.content
 
     stats = client.get("/records/stats")
     assert stats.status_code == 200
@@ -81,3 +91,24 @@ def test_evaluate_and_recommend(client, tmp_path: Path) -> None:
     body = recommend.json()
     assert body["items"]
     assert body["source"] == "rules"
+    assert body["plan_id"]
+    assert body["created_at"]
+    assert body["cached"] is False
+    assert body["items"][0]["ipa"]
+    assert body["items"][0]["audio_url"].startswith("http://testserver/")
+    assert body["items"][0]["phones"]
+    assert body["items"][0]["viseme_track"]["frames"]
+
+    cached = client.get("/recommend")
+    assert cached.status_code == 200
+    cached_body = cached.json()
+    assert cached_body["plan_id"] == body["plan_id"]
+    assert cached_body["cached"] is True
+
+
+def test_evaluate_rejects_silence(client, tmp_path: Path) -> None:
+    audio = write_silence_wav(tmp_path / "silence.wav", duration_ms=500)
+    files = {"audio": ("silence.wav", audio.read_bytes(), "audio/wav")}
+    response = client.post("/evaluate", data={"lesson_id": 1}, files=files)
+    assert response.status_code == 400
+    assert "清晰语音" in response.json()["detail"]

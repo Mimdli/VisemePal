@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api import api_router
 from app.config import BACKEND_DIR, settings
 from app.db import Base, SessionLocal, engine
-from app.models import Lesson, PracticeRecord, User  # noqa: F401
+from app.models import Lesson, PracticeRecord, RecommendationPlan, User  # noqa: F401
 from app.schemas import HealthOut
 from app.seed import seed_if_empty
 from app.services.ise import has_ise_credentials
