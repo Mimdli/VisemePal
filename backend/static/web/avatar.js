@@ -16,6 +16,121 @@ const REST = {
 
 const OCULUS = ["sil", "PP", "FF", "TH", "DD", "kk", "CH", "SS", "nn", "RR", "aa", "E", "I", "O", "U"];
 
+// 嘴部 morph。TalkingHead 语音口型默认元音只到 0.6 并随即收回；
+// 这里按教学场景把形状钉住，并用 ARKit 把 Oculus 15 里看不出来的差别拉开：
+// /iː/ 扁唇、/ɪ/ 松一点、/æ/ 张大、/ɑ/ 略圆、/uː/ 小圆、/ʊ/ 微圆。
+const MOUTH_KEYS = [
+  ...OCULUS.map((name) => `viseme_${name}`),
+  "jawOpen",
+  "mouthClose",
+  "mouthFunnel",
+  "mouthPucker",
+  "mouthSmileLeft",
+  "mouthSmileRight",
+  "mouthStretchLeft",
+  "mouthStretchRight",
+  "mouthLowerDownLeft",
+  "mouthLowerDownRight",
+  "mouthPressLeft",
+  "mouthPressRight",
+];
+
+const MOUTH_RECIPES = {
+  sil: {},
+  PP: { viseme_PP: 1, mouthClose: 0.9, mouthPressLeft: 0.45, mouthPressRight: 0.45 },
+  FF: { viseme_FF: 1, jawOpen: 0.08, mouthLowerDownLeft: 0.16, mouthLowerDownRight: 0.16 },
+  TH: { viseme_TH: 1, jawOpen: 0.34, mouthLowerDownLeft: 0.28, mouthLowerDownRight: 0.28 },
+  DD: { viseme_DD: 0.9, jawOpen: 0.16 },
+  kk: { viseme_kk: 0.55, jawOpen: 0.2 },
+  CH: { viseme_CH: 0.9, mouthFunnel: 0.28, jawOpen: 0.18 },
+  "CH-round": { viseme_CH: 1, mouthFunnel: 0.68, mouthPucker: 0.4, jawOpen: 0.16 },
+  SS: { viseme_SS: 1, mouthSmileLeft: 0.62, mouthSmileRight: 0.62, jawOpen: 0.08 },
+  nn: { viseme_nn: 0.85, jawOpen: 0.12 },
+  RR: { viseme_RR: 1, mouthFunnel: 0.42, mouthPucker: 0.22, jawOpen: 0.16 },
+  aa: { viseme_aa: 1, jawOpen: 0.62 },
+  "aa-wide": { viseme_aa: 1, jawOpen: 0.82, mouthStretchLeft: 0.42, mouthStretchRight: 0.42 },
+  "aa-back": { viseme_aa: 1, jawOpen: 0.7, mouthFunnel: 0.22 },
+  "aa-lax": { viseme_aa: 0.62, jawOpen: 0.3 },
+  E: { viseme_E: 1, jawOpen: 0.32, mouthSmileLeft: 0.34, mouthSmileRight: 0.34 },
+  "E-lax": { viseme_E: 0.48, jawOpen: 0.16 },
+  I: {
+    viseme_I: 1,
+    mouthSmileLeft: 0.82,
+    mouthSmileRight: 0.82,
+    mouthStretchLeft: 0.55,
+    mouthStretchRight: 0.55,
+    jawOpen: 0.05,
+  },
+  "I-lax": {
+    viseme_I: 0.42,
+    viseme_E: 0.48,
+    mouthSmileLeft: 0.22,
+    mouthSmileRight: 0.22,
+    jawOpen: 0.2,
+  },
+  O: { viseme_O: 1, mouthFunnel: 0.78, jawOpen: 0.36 },
+  U: { viseme_U: 1, mouthPucker: 0.92, mouthFunnel: 0.28, jawOpen: 0.06 },
+  "U-lax": { viseme_U: 0.45, viseme_O: 0.4, mouthPucker: 0.32, jawOpen: 0.14 },
+};
+
+const PHONE_RECIPE = {
+  æ: "aa-wide",
+  ɑ: "aa-back",
+  "ɑː": "aa-back",
+  ʌ: "aa-lax",
+  ə: "E-lax",
+  e: "E",
+  ɛ: "E",
+  ɪ: "I-lax",
+  i: "I",
+  "iː": "I",
+  j: "I",
+  ɔ: "O",
+  "ɔː": "O",
+  ɒ: "O",
+  ʊ: "U-lax",
+  u: "U",
+  "uː": "U",
+  w: "U",
+  ʃ: "CH-round",
+  ʒ: "CH-round",
+  tʃ: "CH",
+  dʒ: "CH",
+  s: "SS",
+  z: "SS",
+};
+
+const MOUTH_HINT = {
+  sil: "闭嘴",
+  PP: "双唇闭合",
+  FF: "上齿轻咬下唇",
+  TH: "嘴巴微开",
+  DD: "微开",
+  kk: "微开",
+  CH: "略圆",
+  "CH-round": "嘴唇前突",
+  SS: "展唇露齿",
+  nn: "微开",
+  RR: "微圆",
+  aa: "张大",
+  "aa-wide": "嘴巴张大",
+  "aa-back": "张大、略圆",
+  "aa-lax": "中等开口",
+  E: "扁唇半开",
+  "E-lax": "放松微开",
+  I: "扁唇微笑",
+  "I-lax": "嘴微展",
+  O: "圆唇",
+  U: "嘴唇收成小圆",
+  "U-lax": "嘴唇微圆",
+};
+
+function mouthRecipeId(phoneme, viseme) {
+  if (phoneme && PHONE_RECIPE[phoneme]) return PHONE_RECIPE[phoneme];
+  if (MOUTH_RECIPES[viseme]) return viseme;
+  return "sil";
+}
+
 const RPM_TARGETS = "ARKit,Oculus Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown";
 
 function rpmUrl(idOrUrl) {
@@ -104,6 +219,8 @@ export class AvatarRig {
     this.ready = false;
     this.look = "peach";
     this.currentViseme = "sil";
+    this.currentPhoneme = "";
+    this.mouthId = "";
     this.status = "正在加载真人数字人…";
   }
 
@@ -127,6 +244,9 @@ export class AvatarRig {
     host.querySelectorAll(".avatar-loading").forEach((node) => node.remove());
     if (this.node.parentElement !== host) {
       host.appendChild(this.node);
+    }
+    if (this.hint && this.hint.parentElement !== host) {
+      host.appendChild(this.hint);
     }
     if (!this.ready) {
       let tip = host.querySelector(".avatar-status");
@@ -154,13 +274,14 @@ export class AvatarRig {
         url: spec.url,
         body: spec.body || "F",
         avatarMood: spec.mood || "neutral",
-        lipsyncHeadMovement: true,
+        lipsyncHeadMovement: false,
       });
       this.ready = true;
       this.status = "";
       this.node.parentElement?.querySelector(".avatar-status")?.remove();
       this.head.setView("head");
-      this.setViseme(this.currentViseme);
+      this.mouthId = "";
+      this.setMouth(this.currentViseme, this.currentPhoneme);
     } catch (error) {
       this.status = `数字人加载失败：${error.message || error}`;
       const host = this.node.parentElement;
@@ -177,14 +298,46 @@ export class AvatarRig {
     }
   }
 
-  setViseme(viseme) {
+  setMouth(viseme, phoneme = "") {
     const key = OCULUS.includes(viseme) ? viseme : "sil";
     this.currentViseme = key;
-    if (!this.head?.mtAvatar) return;
-    const weight = key === "PP" || key === "FF" ? 0.9 : key === "sil" ? 0 : 0.72;
-    OCULUS.forEach((name) => {
-      this.head.setValue(`viseme_${name}`, name === key ? weight : 0, 90);
+    this.currentPhoneme = phoneme || "";
+    const recipeId = mouthRecipeId(this.currentPhoneme, key);
+    this._showHint(recipeId);
+    if (!this.head?.mtAvatar || recipeId === this.mouthId) return;
+    this.mouthId = recipeId;
+    const recipe = MOUTH_RECIPES[recipeId] || MOUTH_RECIPES.sil;
+    MOUTH_KEYS.forEach((name) => this._pinMouth(name, recipe[name] || 0));
+  }
+
+  _pinMouth(name, value) {
+    const morph = this.head.mtAvatar[name];
+    if (!morph) return;
+    // setFixedValue 会压过表情动画；直接写入当前值，避免默认加速要半秒才到位。
+    this.head.setFixedValue(name, value);
+    morph.value = value;
+    morph.applied = value;
+    morph.ms.forEach((influences, index) => {
+      influences[morph.is[index]] = value;
     });
+  }
+
+  _showHint(recipeId) {
+    const host = this.node.parentElement;
+    if (!host) return;
+    const hint = MOUTH_HINT[recipeId];
+    const phoneme = this.currentPhoneme ? `/${this.currentPhoneme}/` : "";
+    const text = [hint, phoneme].filter(Boolean).join(" · ");
+    if (!this.hint) {
+      this.hint = document.createElement("p");
+      this.hint.className = "mouth-label";
+    }
+    if (!text || recipeId === "sil") {
+      this.hint.remove();
+      return;
+    }
+    if (this.hint.parentElement !== host) host.appendChild(this.hint);
+    this.hint.textContent = text;
   }
 }
 
@@ -202,6 +355,7 @@ export class DigitalHuman {
     this.audio = null;
     this.playing = false;
     this.label = "";
+    this.phoneme = "";
     this.viseme = "sil";
     this.t0 = performance.now();
     this.onFrame = null;
@@ -219,9 +373,10 @@ export class DigitalHuman {
     this.track = null;
     this.label = label;
     this.viseme = viseme || "sil";
+    this.phoneme = (label || "").replaceAll("/", "");
     this.target = { ...REST, ...pose };
     this.pose = { ...this.target };
-    this.rig.setViseme(this.viseme);
+    this.rig.setMouth(this.viseme, this.phoneme);
   }
 
   speak(track, audio, { play = true } = {}) {
@@ -243,7 +398,8 @@ export class DigitalHuman {
   stop() {
     this.playing = false;
     this.target = { ...REST };
-    this.rig.setViseme("sil");
+    this.phoneme = "";
+    this.rig.setMouth("sil", "");
     if (this.audio) this.audio.pause();
   }
 
@@ -274,8 +430,9 @@ export class DigitalHuman {
       if (frame) {
         this.target = { ...REST, ...frame.pose };
         this.viseme = frame.viseme || "sil";
+        this.phoneme = frame.phoneme || "";
         this.label = frame.phoneme ? `/${frame.phoneme}/` : "";
-        this.rig.setViseme(this.viseme);
+        this.rig.setMouth(this.viseme, this.phoneme);
         if (this.onFrame) this.onFrame(frame, timeMs);
       }
       const finished = this.audio ? this.audio.ended : timeMs >= this.track.duration_ms;
@@ -283,7 +440,8 @@ export class DigitalHuman {
         this.playing = false;
         this.target = { ...REST };
         this.label = "";
-        this.rig.setViseme("sil");
+        this.phoneme = "";
+        this.rig.setMouth("sil", "");
         if (this.onFrame) this.onFrame(null, timeMs);
       }
     }

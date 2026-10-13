@@ -195,18 +195,36 @@ def expand_phones(phones: list[str]) -> list[str]:
     return expanded
 
 
-def _duration_ms(phone: str) -> int:
+def _duration_ms(phone: str, focus: bool = False) -> int:
     if phone in DIPHTHONGS:
-        return 120
-    if phone.endswith(LONG_MARK) or phone in {"iː", "uː", "ɑː", "ɔː"}:
-        return 260
-    if phone in {"ʃ", "s", "θ", "ð", "f", "v"}:
-        return 120
-    if phone in IPA_TO_OCULUS and IPA_TO_OCULUS[phone] in {"PP", "DD", "kk"}:
-        return 80
-    if oculus_for_phone(phone) in {"aa", "E", "I", "O", "U"}:
-        return 150
-    return 90
+        length = 160
+    elif phone.endswith(LONG_MARK) or phone in {"iː", "uː", "ɑː", "ɔː", "ɜː"}:
+        length = 280
+    elif phone in {"æ", "ɑ", "e", "ɛ", "ɪ", "ɔ", "ʊ", "ʌ", "ə"}:
+        length = 200
+    elif phone in {"ʃ", "s", "θ", "ð", "f", "v", "w"}:
+        length = 150
+    elif phone in IPA_TO_OCULUS and IPA_TO_OCULUS[phone] in {"PP", "DD", "kk"}:
+        length = 110
+    elif oculus_for_phone(phone) in {"aa", "E", "I", "O", "U"}:
+        length = 180
+    else:
+        length = 100
+    if focus:
+        return max(length, 320)
+    return length
+
+
+def _viseme_at(sequence: list[str], index: int) -> str:
+    """/h/ 不单独做嘴型，提前用后面的元音，和 Oculus / Azure 的协同发音一致。"""
+    phone = sequence[index]
+    if phone != "h":
+        return oculus_for_phone(phone)
+    for nxt in sequence[index + 1 :]:
+        viseme = oculus_for_phone(nxt)
+        if viseme in {"aa", "E", "I", "O", "U"}:
+            return viseme
+    return "sil"
 
 
 def build_track(
@@ -227,9 +245,9 @@ def build_track(
             focus=False,
         )
     ]
-    for phone in sequence:
-        length = _duration_ms(phone)
-        viseme = oculus_for_phone(phone)
+    for index, phone in enumerate(sequence):
+        length = _duration_ms(phone, focus=phone in focus_set)
+        viseme = _viseme_at(sequence, index)
         frames.append(
             VisemeFrame(
                 phoneme=phone,

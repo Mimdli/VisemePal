@@ -37,6 +37,15 @@ def test_build_track_scales_to_audio_duration() -> None:
     assert spoken[0].start_ms < spoken[1].start_ms < spoken[2].start_ms
 
 
+def test_h_anticipates_following_vowel_and_focus_holds_longer() -> None:
+    track = build_track(["h", "æ", "t"], focus=["æ"])
+    spoken = [frame for frame in track.frames if frame.phoneme]
+    assert [frame.viseme for frame in spoken] == ["aa", "aa", "DD"]
+    frames = {frame.phoneme: frame for frame in spoken}
+    assert frames["æ"].duration_ms > frames["h"].duration_ms
+    assert frames["æ"].duration_ms >= 320
+
+
 def test_phones_from_ipa_and_unknown_lesson_text() -> None:
     assert phones_from_ipa("/ðə kæt/") == ["ð", "ə", "k", "æ", "t"]
     assert phones_from_ipa("/laɪt/") == ["l", "aɪ", "t"]

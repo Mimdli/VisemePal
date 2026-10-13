@@ -86,6 +86,20 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   width: 100% !important;
   height: 100% !important;
 }
+.mouth-label {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a7c75;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
 .avatar-loading, .avatar-status {
   margin: 0;
   padding: 24px 16px;
